@@ -1,0 +1,22 @@
+---
+name: scope-mapper
+lang: Python
+stars: 231
+version: 1.0.4
+tagline: Bug bounty scope aggregator with passive recon
+desc: Aggregates in-scope domains from HackerOne, Bugcrowd, and Intigriti programs and runs passive enumeration via certificate transparency, DNS, and Wayback Machine.
+install: pip install scope-mapper
+usage: |
+  scope-mapper fetch --platform hackerone --program shopify
+  scope-mapper enumerate --scope scope.txt --passive
+  scope-mapper export --format burp-scope
+links:
+  github: https://github.com/0xreeves/scope-mapper
+  pypi: https://pypi.org/project/scope-mapper/
+features:
+  - HackerOne, Bugcrowd, Intigriti API support
+  - CT log enumeration (crt.sh)
+  - Passive DNS resolution
+  - Wayback Machine endpoint discovery
+  - Direct Burp Suite scope export
+---

