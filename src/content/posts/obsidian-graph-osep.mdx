@@ -1,0 +1,132 @@
+---
+title: "Mapping Lateral Movement with Obsidian's Graph View"
+date: "27 May 2026"
+readTime: "8 min"
+tag: Methodology
+summary: How to use Obsidian, plain markdown wikilinks, and the built in Graph plugin to keep track of pivots, identities, and credentials across multi host internal engagements. The same workflow scales well to OSEP labs, challenge networks, and the exam itself.
+---
+
+## Why the Graph View
+
+Any reasonably sized internal engagement stops being a single box problem very quickly. By the time you have rooted the first jump host you usually have three or four sets of credentials, a couple of SSH keys, a domain user, and a handful of half explored services. The mental model that fits this is a graph, not a list, because what matters in practice is the edge between two nodes: which credential let you go from one host to the next.
+
+This is exactly the situation you find yourself in throughout the OSEP labs, the challenge networks, and the 48 hour exam. I started using the workflow below while preparing for OSEP and it carried straight into client work. I will not be sharing any course material here, the examples are deliberately generic, but the shape of the problem is the same.
+
+Obsidian gives you that graph almost for free. Every wikilink in a note becomes an edge, and the Graph plugin that ships with Obsidian renders the whole vault as a force directed diagram you can pan, zoom, and filter. There is no separate database, no Neo4j, no API tokens. The vault is just a folder of markdown.
+
+A ready to use template that follows the conventions below is published at [github.com/pr0f94/obsidian-lateral-movement-template](https://github.com/pr0f94/obsidian-lateral-movement-template). Clone it, point Obsidian at the `Engagement/` folder, and you have a working vault with a worked example chain already in place.
+
+## Vault Layout
+
+The template lays out one vault per engagement like this:
+
+```
+Engagement/
+├── Kali.md                      (the attacker, tagged #attacker)
+├── Credentials, Flags, Hosts.md (central tracking sheet)
+├── Screenshots/
+└── domain/
+    ├── 10.10.10.20/             (web server)
+    │   ├── 10.10.10.20.md
+    │   ├── www-data@10.10.10.20.md
+    │   └── root@10.10.10.20.md
+    ├── 10.10.10.30/             (database server)
+    │   ├── 10.10.10.30.md
+    │   ├── alice@10.10.10.30.md
+    │   └── root@10.10.10.30.md
+    └── 10.10.10.40/             (jump host)
+        ├── 10.10.10.40.md
+        ├── carol@10.10.10.40.md
+        └── root@10.10.10.40.md
+```
+
+Two kinds of nodes:
+
+1. A note per host, named after the IP, containing nmap output, web enum, anything not yet tied to a specific identity.
+2. A note per identity, named `user@ip`, containing the foothold details, local enumeration, and the privesc path.
+
+Splitting host and identity matters. When you come back two hours later you do not want to scroll past nmap output to remember which sudo binary gave you root. Each identity also makes it easy to mark a node `#pwned` so the graph can colour it differently.
+
+## Encoding the Pivot
+
+A plain wikilink already creates an edge, but it does not say *why* the edge exists. To label the technique I use Dataview style inline fields. Here is `www-data@10.10.10.20.md` from the template:
+
+```markdown
+#engagement
+
+sudo_binary::[[root@10.10.10.20]]
+
+## Identity
+www-data@10.10.10.20. Foothold via the file upload bug on the nginx instance.
+```
+
+The left hand side names the artefact or technique (`ssh_key`, `cron_hijack`, `sudo_binary`, `pspy`, `file_upload`, `kerberoast`, `mssql_link`), the right hand side is the destination node. The Graph plugin treats it as a normal link, so it shows up as an edge, but Dataview can also query these fields later if you want to generate a table of every pivot in the vault.
+
+The example chain that ships with the template is a clean linear path, one outgoing edge per node, so the graph is readable straight away:
+
+```
+Kali
+ └─ initial_foothold ──▶ 10.10.10.20
+      └─ webshell ──▶ www-data@10.10.10.20
+           └─ sudo_binary ──▶ root@10.10.10.20
+                └─ reused_password ──▶ 10.10.10.30
+                     └─ ssh_login ──▶ alice@10.10.10.30
+                          └─ sudo_binary ──▶ root@10.10.10.30
+                               └─ ssh_key ──▶ 10.10.10.40
+                                    └─ ssh_login ──▶ carol@10.10.10.40
+                                         └─ kernel_exploit ──▶ root@10.10.10.40
+```
+
+In a real engagement the graph will branch. Multiple identities on one host, alternate paths to the same target, dead ends. The Graph plugin draws this as a force directed layout where root nodes naturally cluster and any high traffic identity (the user whose credentials are reused everywhere) ends up as a visible hub.
+
+## Tags as Filters
+
+Three tags do most of the work:
+
+- `#engagement` (or a per project tag) scopes the graph to one job when you have several vaults open or one global vault.
+- `#attacker` marks the Kali node so it always sits at the edge of the graph and is easy to spot.
+- `#pwned` marks identities you have fully compromised, which I colour bright red in the Graph settings.
+
+In the global graph settings you can add a Group, give it a query like `tag:#pwned`, and pick a colour. Do the same for `tag:#attacker`. You can also add a Group with the search query `path:domain/10.10.10.20` to colour every node belonging to a particular host, which is what makes the host clusters obvious.
+
+## Local Graph While Pivoting
+
+The setting that actually changes how I work in practice is the Local Graph pane, pinned to the right hand sidebar. It shows only the neighbours of the note you are currently looking at, up to a configurable depth.
+
+When I am sitting on `alice@10.10.10.30` writing up the privesc steps, the local graph already shows me the places this identity can reach. If one of those nodes is not yet `#pwned`, the colour difference tells me where there is still work to do without leaving the note.
+
+Set the local graph depth to 2 so you can see one hop further than the current node. Any deeper and the picture becomes the global graph again.
+
+## The Central Tracker
+
+The graph is great for orientation but it is not where you should be reading credentials at three in the morning. I keep a single `Credentials, Flags, Hosts.md` at the vault root with two tables:
+
+```markdown
+| Username | Domain | NTLM | Password |
+| -------- | ------ | ---- | -------- |
+
+| DOMAIN | DNS | IP | Compromised | local | proof | secret |
+| ------ | --- | -- | ----------- | ----- | ----- | ------ |
+```
+
+Both tables are plain markdown. The Hosts table is what you copy and paste into the report flags section at the end. The Credentials table is what you grep when you want to know whether you have already tried a hash against a new SMB share.
+
+## Why This Beats a Word Document
+
+The final report is going to be a Word document either way. The argument for Obsidian during the engagement is not about the final deliverable, it is about three things you do not get from Word:
+
+1. Backlinks are free. Every time you mention `[[root@10.10.10.20]]` in a new note, the existing node grows a backlink without you doing anything. After two hours you have a network of references you never had to maintain.
+2. The graph reveals dead ends. If a host node has only one edge in and no edges out after you have spent thirty minutes on it, that is a signal, not a vibe.
+3. Search is structured. `tag:#pwned -path:domain/10.10.10.30` answers "what have I rooted that is not on .30" instantly, which is the kind of question you actually ask under time pressure, and it is the kind of question that comes up constantly in an OSEP style multi network exam.
+
+## Setup Checklist
+
+The fastest way to start is to clone the template at [github.com/pr0f94/obsidian-lateral-movement-template](https://github.com/pr0f94/obsidian-lateral-movement-template), then:
+
+1. Install Obsidian and open the `Engagement/` folder as a vault.
+2. Enable the Graph plugin and the Local Graph plugin (both ship with Obsidian, just toggle them on).
+3. Optional but recommended, install the Dataview community plugin if you want to query the inline fields later.
+4. Set up Groups in the Graph view for `#attacker`, `#pwned`, and one per host path.
+5. Delete the example notes once you have looked at the layout, and start adding your own hosts and identities.
+
+After that the rule is simple: every time you move laterally, the source note gets a `technique::[[destination]]` line. The graph takes care of itself.
