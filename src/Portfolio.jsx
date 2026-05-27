@@ -180,6 +180,9 @@ const mdxComponents = {
     <a target="_blank" rel="noopener noreferrer"
        style={{ color: "#7dcef5", textDecoration: "underline", textUnderlineOffset: "2px" }} {...props} />
   ),
+  img: (props) => (
+    <img style={{ maxWidth: "100%", height: "auto", display: "block", margin: "18px 0", borderRadius: "4px", border: "1px solid rgba(255,255,255,0.08)" }} {...props} />
+  ),
   hr: () => null,
   table: (props) => (
     <div style={{ overflowX: "auto", margin: "18px 0" }}>
