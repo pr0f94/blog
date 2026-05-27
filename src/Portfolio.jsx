@@ -48,10 +48,10 @@ const SEV_META = {
 };
 
 const SOCIAL = {
-  email:     "alex@0xreeves.com",
-  github:    "https://github.com/0xreeves",
-  hackerone: "https://hackerone.com/0xreeves",
-  twitter:   "https://twitter.com/0xreeves",
+  email:     "alex@pr0f.com",
+  github:    "https://github.com/pr0f94",
+  hackerone: "https://hackerone.com/pr0f",
+  twitter:   "https://twitter.com/pr0f",
 };
 
 // ─── ATOMS ───────────────────────────────────────────────────────────────────
@@ -338,7 +338,7 @@ const AboutPanel = () => (
       }}>AR</div>
       <div>
         <h1 id="about-title" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "26px", fontWeight: 700, color: "#fff", letterSpacing: "-0.02em" }}>Alex Reeves</h1>
-        <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)", fontFamily: "'JetBrains Mono', monospace" }}>@0xreeves · Security Researcher</div>
+        <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)", fontFamily: "'JetBrains Mono', monospace" }}>@pr0f · Security Researcher</div>
       </div>
     </div>
 
@@ -362,9 +362,9 @@ const AboutPanel = () => (
     <ul style={{ display: "flex", flexDirection: "column", gap: "10px", listStyle: "none", padding: 0, margin: 0 }}>
       {[
         { label: "Email",     val: SOCIAL.email,             href: `mailto:${SOCIAL.email}`, external: false },
-        { label: "GitHub",    val: "github.com/0xreeves",    href: SOCIAL.github,            external: true  },
-        { label: "HackerOne", val: "hackerone.com/0xreeves", href: SOCIAL.hackerone,         external: true  },
-        { label: "Twitter",   val: "@0xreeves",              href: SOCIAL.twitter,           external: true  },
+        { label: "GitHub",    val: "github.com/pr0f94",    href: SOCIAL.github,            external: true  },
+        { label: "HackerOne", val: "hackerone.com/pr0f", href: SOCIAL.hackerone,         external: true  },
+        { label: "Twitter",   val: "@pr0f",              href: SOCIAL.twitter,           external: true  },
       ].map((c) => (
         <li key={c.label}>
           <a href={c.href}
@@ -916,7 +916,7 @@ export default function Portfolio() {
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px",
           }}>
             <nav aria-label="Breadcrumb" style={{ display: "flex", alignItems: "center", gap: "6px", minWidth: 0, flex: 1 }}>
-              <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>0xreeves</span>
+              <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>pr0f</span>
               <span aria-hidden="true" style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)" }}>/</span>
               <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)" }}>{section}</span>
               {section !== "about" && (
