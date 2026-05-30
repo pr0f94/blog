@@ -279,8 +279,6 @@ const ToolDetail = ({ tool }) => (
           color:      tool.lang === "Python" ? "#7dcef5"               : "#7be0c8",
           letterSpacing: "0.04em",
         }}>{tool.lang}</span>
-        <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)", fontFamily: "'JetBrains Mono', monospace" }}>v{tool.version}</span>
-        <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)" }} aria-label={`${tool.stars} stars`}>★ {tool.stars}</span>
       </div>
       <h1 id="tool-title" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "28px", fontWeight: 700, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.25, marginBottom: "8px", wordBreak: "break-word" }}>
         ~/{tool.name}
@@ -682,10 +680,13 @@ export default function Portfolio() {
         <nav className="rail" aria-label="Primary">
           <div className="logo-mark" aria-hidden="true" style={{
             width: 32, height: 32, borderRadius: "8px",
-            background: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+            background: "#0a0a0a",
+            border: "1px solid rgba(74,222,128,0.4)",
+            boxShadow: "0 0 4px rgba(74,222,128,0.08)",
+            display: "flex", alignItems: "center", justifyContent: "center",
             marginBottom: "16px", flexShrink: 0,
           }}>
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "10px", fontWeight: 600, color: "#111" }}>0x</span>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "12px", fontWeight: 700, color: "#4ade80" }}>{">_"}</span>
           </div>
 
           {navItems.map(({ id, label, Icon }) => {
@@ -821,13 +822,6 @@ export default function Portfolio() {
               })}
 
               {section === "about" && (about.certifications || []).map((cert) => {
-                const orgStyles = {
-                  "OffSec":              { bg: "rgba(247,107,21,0.12)", text: "#ffa466" },
-                  "Practical DevSecOps": { bg: "rgba(70,167,88,0.14)",  text: "#7ad08c" },
-                  "Zero-Point Security": { bg: "rgba(124,107,222,0.15)", text: "#b3a4f5" },
-                  "AWS":                 { bg: "rgba(255,197,61,0.12)", text: "#ffd874" },
-                };
-                const s = orgStyles[cert.org] || { bg: "rgba(255,255,255,0.06)", text: "rgba(255,255,255,0.7)" };
                 return (
                   <li key={cert.id} className="cert-row">
                     <div
@@ -840,43 +834,30 @@ export default function Portfolio() {
                         cursor: "default", display: "block",
                       }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "3px", gap: "8px" }}>
-                        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "15px", color: "rgba(255,255,255,0.95)", fontWeight: 700, letterSpacing: "-0.01em" }}>
+                        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "15px", color: cert.color || "rgba(255,255,255,0.95)", fontWeight: 700, letterSpacing: "-0.01em" }}>
                           {cert.name}
                         </span>
-                        {cert.year && (
-                          <span style={{
-                            fontFamily: "'JetBrains Mono', monospace",
-                            fontSize: "10px",
-                            color: "rgba(255,255,255,0.7)",
-                            padding: "2px 8px",
-                            borderRadius: "10px",
-                            background: "rgba(255,255,255,0.05)",
-                            border: "1px solid rgba(255,255,255,0.08)",
-                            flexShrink: 0,
-                          }}>{cert.year}</span>
-                        )}
-                      </div>
-                      {cert.description && (
-                        <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.55)", marginBottom: "8px", lineHeight: 1.3 }}>
-                          {cert.description}
-                        </div>
-                      )}
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                        {cert.org && (
-                          <span style={{
-                            fontSize: "10px", fontWeight: 700, letterSpacing: "0.04em",
-                            padding: "2px 8px", borderRadius: "10px",
-                            background: s.bg, color: s.text,
-                          }}>{cert.org}</span>
-                        )}
                         {cert.status && (
                           <span style={{
-                            fontSize: "10px", fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase",
+                            fontSize: "10px", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase",
                             padding: "2px 8px", borderRadius: "10px",
-                            background: "rgba(255,197,61,0.12)", color: "#ffd874",
+                            background: "rgba(56,189,248,0.08)", color: "#38bdf8",
+                            border: "1px solid rgba(56,189,248,0.35)",
+                            boxShadow: "0 0 6px rgba(56,189,248,0.25)",
+                            flexShrink: 0,
                           }}>{cert.status}</span>
                         )}
                       </div>
+                      {(cert.description || cert.year) && (
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "8px", fontSize: "11px", lineHeight: 1.3 }}>
+                          <span style={{ color: "rgba(255,255,255,0.55)" }}>{cert.description}</span>
+                          {cert.year && (
+                            <span style={{ fontFamily: "'JetBrains Mono', monospace", color: "rgba(255,255,255,0.2)", flexShrink: 0 }}>
+                              {cert.year}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </li>
                 );
@@ -903,7 +884,6 @@ export default function Portfolio() {
                         <span style={{ fontSize: "10px", color: langColor, fontWeight: 700, flexShrink: 0 }}>{tool.lang}</span>
                       </div>
                       <div className="clamp-2" style={{ fontSize: "12px", color: "rgba(255,255,255,0.62)", lineHeight: 1.4 }}>{tool.tagline}</div>
-                      <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.5)", marginTop: "5px" }} aria-label={`${tool.stars} stars`}>★ {tool.stars}</div>
                     </button>
                   </li>
                 );
