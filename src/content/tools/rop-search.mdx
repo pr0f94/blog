@@ -1,0 +1,21 @@
+---
+name: rop_search
+lang: Python
+stars: 0
+version: ""
+tagline: Search rp++ gadget output by ordered instruction fragments
+desc: A small CLI for sifting through rp++ ROP gadget dumps. Matches ordered fragments of instructions, registers, or values across each gadget, with optional bad-character filtering for shellcode-safe addresses. Useful when building chains where you need a specific sequence of operations rather than a single gadget.
+install: git clone https://github.com/pr0f94/rop_search
+usage: |
+  python3 rop_search.py -file rop.txt -g "sub esi, 0x20" "push ebx"
+  python3 rop_search.py -file rop.txt -g "sub esi" "push" --badchars "0a,0d,25,26,2b,3d"
+  python3 rop_search.py -file rop.txt -g "pop eax" "ret" --instruction-order
+links:
+  github: https://github.com/pr0f94/rop_search
+features:
+  - Match multiple ordered instruction or register fragments per gadget
+  - Bad-character filter so returned addresses are shellcode-safe
+  - Strict instruction-boundary matching with `--instruction-order`
+  - Show raw address bytes alongside results
+  - Count-only mode for quick gadget surveys
+---

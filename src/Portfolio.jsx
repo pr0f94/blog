@@ -6,6 +6,8 @@ import php from "highlight.js/lib/languages/php";
 import json from "highlight.js/lib/languages/json";
 import go from "highlight.js/lib/languages/go";
 import "highlight.js/styles/github-dark.css";
+import AboutPanel from "./components/AboutPanel.jsx";
+import { frontmatter as about } from "./content/about.mdx";
 
 hljs.registerLanguage("bash", bash);
 hljs.registerLanguage("sh", bash);
@@ -47,12 +49,7 @@ const SEV_META = {
   LOW:      { bg: "rgba(70,167,88,0.12)",  text: "#7ad08c" },
 };
 
-const SOCIAL = {
-  email:     "alex@pr0f.com",
-  github:    "https://github.com/pr0f94",
-  hackerone: "https://hackerone.com/pr0f",
-  twitter:   "https://twitter.com/pr0f",
-};
+const SOCIAL = about.socials;
 
 // ─── ATOMS ───────────────────────────────────────────────────────────────────
 
@@ -326,66 +323,6 @@ const ToolDetail = ({ tool }) => (
   </article>
 );
 
-const AboutPanel = () => (
-  <article className="detail-panel" aria-labelledby="about-title">
-    <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "32px" }}>
-      <div aria-hidden="true" style={{
-        width: 64, height: 64, borderRadius: "50%",
-        background: "linear-gradient(135deg, #00c9a7, #6366f1)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: "22px", fontWeight: 800, color: "#fff", fontFamily: "'JetBrains Mono', monospace",
-        flexShrink: 0,
-      }}>AR</div>
-      <div>
-        <h1 id="about-title" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "26px", fontWeight: 700, color: "#fff", letterSpacing: "-0.02em" }}>Alex Reeves</h1>
-        <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)", fontFamily: "'JetBrains Mono', monospace" }}>@pr0f · Security Researcher</div>
-      </div>
-    </div>
-
-    <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.75)", lineHeight: 1.85, marginBottom: "28px" }}>
-      I specialise in WordPress plugin vulnerability research. My focus is on finding and responsibly disclosing authentication bypasses, SQL injection, and access control vulnerabilities in widely-deployed plugins.
-    </p>
-
-    <div className="stats-grid" style={{ marginBottom: "32px" }}>
-      {[
-        { val: String(CVES.length),  label: "CVEs" },
-        { val: String(TOOLS.length), label: "Tools" },
-      ].map((s) => (
-        <div key={s.label} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "10px", padding: "18px", textAlign: "center" }}>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "32px", fontWeight: 700, color: "#fff" }}>{s.val}</div>
-          <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)", marginTop: "4px" }}>{s.label}</div>
-        </div>
-      ))}
-    </div>
-
-    <h2 style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "21px", fontWeight: 700, color: "#fff", margin: "36px 0 8px", letterSpacing: "-0.01em", lineHeight: 1.25 }}>Contact</h2>
-    <ul style={{ display: "flex", flexDirection: "column", gap: "10px", listStyle: "none", padding: 0, margin: 0 }}>
-      {[
-        { label: "Email",     val: SOCIAL.email,             href: `mailto:${SOCIAL.email}`, external: false },
-        { label: "GitHub",    val: "github.com/pr0f94",    href: SOCIAL.github,            external: true  },
-        { label: "HackerOne", val: "hackerone.com/pr0f", href: SOCIAL.hackerone,         external: true  },
-        { label: "Twitter",   val: "@pr0f",              href: SOCIAL.twitter,           external: true  },
-      ].map((c) => (
-        <li key={c.label}>
-          <a href={c.href}
-             {...(c.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-             className="contact-link"
-             style={{
-               display: "flex", gap: "12px", padding: "10px 14px",
-               background: "rgba(255,255,255,0.03)", borderRadius: "8px",
-               border: "1px solid rgba(255,255,255,0.07)",
-               textDecoration: "none", color: "inherit",
-             }}>
-            <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)", width: "80px", flexShrink: 0 }}>{c.label}</span>
-            <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.85)", fontFamily: "'JetBrains Mono', monospace", wordBreak: "break-all" }}>
-              {c.val}{c.external ? " ↗" : ""}
-            </span>
-          </a>
-        </li>
-      ))}
-    </ul>
-  </article>
-);
 
 // ─── RIGHT RAIL (TOC + metadata) ─────────────────────────────────────────────
 
@@ -527,7 +464,13 @@ export default function Portfolio() {
     if (section === "cves")    return <CVEDetail  cve={currentData}  />;
     if (section === "writing") return <PostDetail post={currentData} />;
     if (section === "tools")   return <ToolDetail tool={currentData} />;
-    return <AboutPanel />;
+    return <AboutPanel
+      stats={[
+        { val: String(CVES.length),  label: "CVEs" },
+        { val: String(TOOLS.length), label: "Tools" },
+      ]}
+      components={mdxComponents}
+    />;
   };
 
   const breadcrumbLabel = (() => {
@@ -580,6 +523,8 @@ export default function Portfolio() {
         /* Interactive states */
         .list-item { transition: background 0.12s ease; }
         .list-item:hover { background: rgba(255,255,255,0.05) !important; }
+        .cert-row { display: block; background: transparent; }
+        .cert-row:nth-child(even) > div { background: rgba(255,255,255,0.01); }
         .nav-btn { transition: background 0.12s ease, color 0.12s ease; }
         .nav-btn:hover { background: rgba(255,255,255,0.06) !important; color: rgba(255,255,255,0.85) !important; }
         .copy-btn:hover { border-color: rgba(255,255,255,0.3) !important; color: rgba(255,255,255,0.95) !important; }
@@ -602,7 +547,7 @@ export default function Portfolio() {
           align-items: center; padding-top: 16px; gap: 4px;
         }
         .list-col {
-          width: 280px; flex-shrink: 0; background: #141414;
+          width: 240px; flex-shrink: 0; background: #141414;
           border-right: 1px solid rgba(255,255,255,0.07);
           display: flex; flex-direction: column;
         }
@@ -771,13 +716,13 @@ export default function Portfolio() {
         </nav>
 
         {/* ── COL 2: ITEM LIST ── */}
-        {section !== "about" && (
-          <aside
+        <aside
             className={`list-col ${mobileShowList ? "" : "collapsed"}`}
             aria-label={
               section === "cves" ? "CVE list"
               : section === "writing" ? "Article list"
-              : "Tools list"
+              : section === "tools" ? "Tools list"
+              : "Certifications list"
             }
           >
             <div style={{
@@ -788,12 +733,12 @@ export default function Portfolio() {
             }}>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: "11px", fontWeight: 600, color: "rgba(255,255,255,0.5)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "2px" }}>
-                  {section === "cves" ? "Vulnerabilities" : section === "writing" ? "Articles" : "Open Source"}
+                  {section === "cves" ? "Vulnerabilities" : section === "writing" ? "Articles" : section === "tools" ? "Open Source" : "Certifications"}
                 </div>
                 <div style={{ fontSize: "18px", fontWeight: 700, color: "#fff" }}>
-                  {section === "cves" ? CVES.length : section === "writing" ? POSTS.length : TOOLS.length}{" "}
+                  {section === "cves" ? CVES.length : section === "writing" ? POSTS.length : section === "tools" ? TOOLS.length : (about.certifications?.length || 0)}{" "}
                   <span style={{ color: "rgba(255,255,255,0.5)", fontWeight: 400, fontSize: "14px" }}>
-                    {section === "cves" ? "CVEs" : section === "writing" ? "posts" : "tools"}
+                    {section === "cves" ? "CVEs" : section === "writing" ? "posts" : section === "tools" ? "tools" : "certs"}
                   </span>
                 </div>
               </div>
@@ -875,6 +820,68 @@ export default function Portfolio() {
                 );
               })}
 
+              {section === "about" && (about.certifications || []).map((cert) => {
+                const orgStyles = {
+                  "OffSec":              { bg: "rgba(247,107,21,0.12)", text: "#ffa466" },
+                  "Practical DevSecOps": { bg: "rgba(70,167,88,0.14)",  text: "#7ad08c" },
+                  "Zero-Point Security": { bg: "rgba(124,107,222,0.15)", text: "#b3a4f5" },
+                  "AWS":                 { bg: "rgba(255,197,61,0.12)", text: "#ffd874" },
+                };
+                const s = orgStyles[cert.org] || { bg: "rgba(255,255,255,0.06)", text: "rgba(255,255,255,0.7)" };
+                return (
+                  <li key={cert.id} className="cert-row">
+                    <div
+                      aria-disabled="true"
+                      style={{
+                        width: "100%", textAlign: "left", color: "inherit", font: "inherit",
+                        padding: "14px 16px",
+                        borderBottom: "1px solid rgba(255,255,255,0.04)",
+                        borderLeft: "2px solid transparent",
+                        cursor: "default", display: "block",
+                      }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "3px", gap: "8px" }}>
+                        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "15px", color: "rgba(255,255,255,0.95)", fontWeight: 700, letterSpacing: "-0.01em" }}>
+                          {cert.name}
+                        </span>
+                        {cert.year && (
+                          <span style={{
+                            fontFamily: "'JetBrains Mono', monospace",
+                            fontSize: "10px",
+                            color: "rgba(255,255,255,0.7)",
+                            padding: "2px 8px",
+                            borderRadius: "10px",
+                            background: "rgba(255,255,255,0.05)",
+                            border: "1px solid rgba(255,255,255,0.08)",
+                            flexShrink: 0,
+                          }}>{cert.year}</span>
+                        )}
+                      </div>
+                      {cert.description && (
+                        <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.55)", marginBottom: "8px", lineHeight: 1.3 }}>
+                          {cert.description}
+                        </div>
+                      )}
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                        {cert.org && (
+                          <span style={{
+                            fontSize: "10px", fontWeight: 700, letterSpacing: "0.04em",
+                            padding: "2px 8px", borderRadius: "10px",
+                            background: s.bg, color: s.text,
+                          }}>{cert.org}</span>
+                        )}
+                        {cert.status && (
+                          <span style={{
+                            fontSize: "10px", fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase",
+                            padding: "2px 8px", borderRadius: "10px",
+                            background: "rgba(255,197,61,0.12)", color: "#ffd874",
+                          }}>{cert.status}</span>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+
               {section === "tools" && TOOLS.map(tool => {
                 const active = selected === tool.id;
                 const langColor = tool.lang === "Python" ? "#7dcef5" : "#7be0c8";
@@ -904,7 +911,6 @@ export default function Portfolio() {
 
             </ul>
           </aside>
-        )}
 
         {/* ── COL 3: CONTENT AREA ── */}
         <main id="main-content" className="scroll-area content-col" tabIndex={-1}>
@@ -936,12 +942,12 @@ export default function Portfolio() {
                    padding: "4px 10px", borderRadius: "4px", border: "1px solid rgba(255,255,255,0.1)",
                    fontFamily: "'JetBrains Mono', monospace",
                  }}>github ↗</a>
-              <a href={SOCIAL.hackerone} target="_blank" rel="noopener noreferrer" className="ext-link"
+              <a href={SOCIAL.linkedin} target="_blank" rel="noopener noreferrer" className="ext-link"
                  style={{
                    fontSize: "11px", color: "rgba(255,255,255,0.6)", textDecoration: "none",
                    padding: "4px 10px", borderRadius: "4px", border: "1px solid rgba(255,255,255,0.1)",
                    fontFamily: "'JetBrains Mono', monospace",
-                 }}>hackerone ↗</a>
+                 }}>linkedin ↗</a>
             </div>
           </div>
 
