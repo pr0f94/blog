@@ -13,6 +13,7 @@ usage: |
   squadrone scan contact-form-7 --budget 5.00 --config pipelines/openai.yaml
   squadrone scan contact-form-7 --version 5.3.1 --diff 5.3.0
   squadrone scan-batch plugins.txt --concurrency 3 --triage-votes 3
+  squadrone scan-batch plugins.txt --budget 100 --config pipelines/openai-research.yaml --verbose --no-verify --chain --cross-file-taint --triage-votes 3
   squadrone runs list
   squadrone findings show <finding-id>
 links:
