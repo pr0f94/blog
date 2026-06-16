@@ -1,0 +1,28 @@
+---
+name: squadrone
+lang: Python
+tagline: Multi-agent vulnerability research for WordPress plugins
+desc: A CLI research pipeline for WordPress plugin vulnerability hunting. Squadrone pulls plugin source, maps reachable attack surface, runs specialist LLM agents, triages findings against exploitability and bounty-scope rules, verifies survivors in an isolated Docker WordPress sandbox, deduplicates known issues, and writes private disclosure drafts for manual review.
+install: |
+  git clone https://github.com/pr0f94/Squadrone.git squadrone
+  cd squadrone
+  python3.12 -m venv .venv
+  .venv/bin/python -m pip install -e ".[dev]"
+usage: |
+  squadrone scan hello-dolly
+  squadrone scan contact-form-7 --budget 5.00 --config pipelines/openai.yaml
+  squadrone scan contact-form-7 --version 5.3.1 --diff 5.3.0
+  squadrone scan-batch plugins.txt --concurrency 3 --triage-votes 3
+  squadrone runs list
+  squadrone findings show <finding-id>
+links:
+  github: https://github.com/pr0f94/Squadrone
+features:
+  - One-command scans from a WordPress.org plugin slug
+  - Attack-surface mapping for AJAX, REST, forms, files, auth, SQL, payment logic, and rendering paths
+  - Specialist LLM agents with source-grounded plugin file tools
+  - Exploitability triage with balanced quality gates and manual-review routing
+  - Docker WordPress sandbox verification with iterative PoC attempts
+  - Known-vulnerability deduplication against Wordfence Intelligence and WPScan when API keys are configured
+  - Private disclosure report drafts with no auto-submit path
+---
