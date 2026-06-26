@@ -1,0 +1,29 @@
+---
+name: pocsmith
+lang: Python
+tagline: Generate modular Python PoC templates for web security testing
+desc: A dependency-free CLI for building proof-of-concept exploit templates from composable module aliases or YAML profiles. Pocsmith lets you quickly scaffold the boring parts of a PoC, including requests sessions, auth flows, CSRF/token extraction, callback servers, file uploads, WebSocket clients, brute-force loops, and proof callbacks.
+install: |
+  pipx install git+https://github.com/pr0f94/pocsmith.git
+
+  # local development
+  git clone https://github.com/pr0f94/pocsmith.git
+  cd pocsmith
+  python3 -m pip install -e .
+usage: |
+  pocsmith --profile web-callback -o exploit.py
+  pocsmith --session --auth-form -o exploit.py
+  pocsmith --local --proof -o callback.py
+  pocsmith --profile web-rce -o exploit.py
+  python3 exploit.py --target target.local --https
+  python3 exploit.py --callback-ip 192.168.45.123 --flask-port 8000
+links:
+  github: https://github.com/pr0f94/pocsmith
+features:
+  - Compose PoC templates from simple alias flags or packaged YAML profiles
+  - Automatically includes module dependencies such as sessions, Flask callbacks, HTML parsing, and queue state
+  - Generates only the runtime arguments needed by the selected modules
+  - Supports common web exploit building blocks including auth, CSRF, file upload, ZIP payloads, WebSockets, and callbacks
+  - Refuses to overwrite existing output unless `--force` is supplied
+  - Dependency-free core package; generated templates only import what their selected modules need
+---
