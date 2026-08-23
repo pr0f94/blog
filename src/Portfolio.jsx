@@ -34,7 +34,8 @@ const CVES = Object.entries(cveModules)
   .sort((a, b) => (b.year - a.year) || a.id.localeCompare(b.id));
 
 const POSTS = Object.entries(postModules)
-  .map(([path, mod]) => ({ id: idFromPath(path), Content: mod.default, ...mod.frontmatter }));
+  .map(([path, mod]) => ({ id: idFromPath(path), Content: mod.default, ...mod.frontmatter }))
+  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
 const TOOLS = Object.entries(toolModules)
   .map(([path, mod]) => ({ id: idFromPath(path), ...mod.frontmatter }))
