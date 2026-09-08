@@ -33,6 +33,18 @@ const CVES = Object.entries(cveModules)
   .map(([path, mod]) => ({ id: idFromPath(path), Content: mod.default, ...mod.frontmatter }))
   .sort((a, b) => (b.year - a.year) || a.id.localeCompare(b.id));
 
+// Public-safe research entry for a vulnerability that is still under coordinated disclosure.
+// Keep identifying and technical details out of this object until publication is approved.
+const PENDING_CVES = [
+  {
+    id: "pending-disclosure-01",
+    status: "Pending disclosure",
+    product: "Confidential software product",
+    type: "Severity unconfirmed",
+    summary: "A vulnerability identified and responsibly disclosed to the vendor. CVE assignment, severity, and technical details are pending publication.",
+  },
+];
+
 const POSTS = Object.entries(postModules)
   .map(([path, mod]) => ({ id: idFromPath(path), Content: mod.default, ...mod.frontmatter }))
   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -240,6 +252,34 @@ const CVEDetail = ({ cve }) => (
   </article>
 );
 
+const PendingCVEDetail = ({ cve }) => (
+  <article className="detail-panel" aria-labelledby="pending-cve-title">
+    <header style={{ marginBottom: "28px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px", flexWrap: "wrap" }}>
+        <Badge label={cve.status} />
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "rgba(255,255,255,0.55)" }}>{cve.type}</span>
+      </div>
+      <h1 id="pending-cve-title" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "28px", fontWeight: 700, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.25, marginBottom: "8px" }}>
+        Vulnerability research in progress
+      </h1>
+      <div style={{ fontSize: "16px", fontWeight: 600, color: "rgba(255,255,255,0.78)", marginBottom: "16px" }}>
+        {cve.product}
+      </div>
+      <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.72)", lineHeight: 1.75, borderLeft: "3px solid rgba(255,255,255,0.15)", paddingLeft: "16px" }}>
+        {cve.summary}
+      </p>
+    </header>
+    <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "20px" }}>
+      <p style={{ color: "rgba(255,255,255,0.72)", fontSize: "14.5px", lineHeight: 1.85, margin: "8px 0" }}>
+        I am withholding the vendor, product, vulnerability class, severity, and proof-of-concept details until coordinated disclosure is complete.
+      </p>
+      <p style={{ color: "rgba(255,255,255,0.72)", fontSize: "14.5px", lineHeight: 1.85, margin: "8px 0" }}>
+        This entry is included to distinguish ongoing independent research from published CVE records. The public advisory and CVE identifier will be added here when disclosure permits.
+      </p>
+    </div>
+  </article>
+);
+
 const PostDetail = ({ post }) => (
   <article className="detail-panel" aria-labelledby="post-title">
     <header style={{ marginBottom: "28px" }}>
@@ -407,7 +447,7 @@ const parseHash = () => {
 export default function Portfolio() {
   const initial = parseHash();
   const initialSelected = (() => {
-    if (initial.section === "cves")    return CVES.find(c => c.id === initial.id)?.id  || CVES[0].id;
+    if (initial.section === "cves")    return [...CVES, ...PENDING_CVES].find(c => c.id === initial.id)?.id  || CVES[0].id;
     if (initial.section === "writing") return POSTS.find(p => p.id === initial.id)?.id || POSTS[0].id;
     if (initial.section === "tools")   return TOOLS.find(t => t.id === initial.id)?.id || TOOLS[0].id;
     return "about";
@@ -430,7 +470,7 @@ export default function Portfolio() {
     const onHash = () => {
       const { section: s, id } = parseHash();
       setSection(s);
-      if (s === "cves")         setSelected(CVES.find(c => c.id === id)?.id  || CVES[0].id);
+      if (s === "cves")         setSelected([...CVES, ...PENDING_CVES].find(c => c.id === id)?.id  || CVES[0].id);
       else if (s === "writing") setSelected(POSTS.find(p => p.id === id)?.id || POSTS[0].id);
       else if (s === "tools")   setSelected(TOOLS.find(t => t.id === id)?.id || TOOLS[0].id);
       else                      setSelected("about");
@@ -474,7 +514,7 @@ export default function Portfolio() {
 
   const breadcrumbLabel = (() => {
     if (section === "about")   return "about";
-    if (section === "cves")    return selected;
+    if (section === "cves")    return currentData.status ? currentData.status : selected;
     if (section === "writing") return POSTS.find(p => p.id === selected)?.title || "";
     if (section === "tools")   return `~/${selected}`;
     return "";
@@ -760,6 +800,36 @@ export default function Portfolio() {
 
             <ul id="list-scroll" className="scroll-area list-scroll" role="list"
                 style={{ flex: 1, listStyle: "none", padding: 0, margin: 0 }}>
+
+              {section === "cves" && PENDING_CVES.map(cve => {
+                const active = selected === cve.id;
+                return (
+                  <li key={cve.id}>
+                    <button type="button" className="list-item"
+                      aria-current={active ? "true" : undefined}
+                      onClick={() => selectItem(cve.id)}
+                      style={{
+                        width: "100%", textAlign: "left", border: "none", color: "inherit", font: "inherit",
+                        background: active ? "rgba(255,255,255,0.06)" : "transparent",
+                        padding: "13px 16px",
+                        borderBottom: "1px solid rgba(255,255,255,0.04)",
+                        borderLeft: active ? "2px solid #fff" : "2px solid transparent",
+                        cursor: "pointer", display: "block",
+                      }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px", marginBottom: "5px" }}>
+                        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: active ? "#fff" : "rgba(255,255,255,0.7)", fontWeight: 500 }}>
+                          CVE pending
+                        </span>
+                        <Badge label="PENDING" />
+                      </div>
+                      <div className="truncate" style={{ fontSize: "13px", color: active ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.75)", fontWeight: 500, lineHeight: 1.3 }}>
+                        Confidential research
+                      </div>
+                      <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.5)", marginTop: "4px" }}>{cve.type}</div>
+                    </button>
+                  </li>
+                );
+              })}
 
               {section === "cves" && CVES.map(cve => {
                 const active = selected === cve.id;
