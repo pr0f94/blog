@@ -494,13 +494,13 @@ export default function Portfolio() {
   }, []);
 
   const currentData =
-    section === "cves"    ? (CVES.find(c => c.id === selected)   || CVES[0])
+    section === "cves"    ? ([...CVES, ...PENDING_CVES].find(c => c.id === selected) || CVES[0])
   : section === "writing" ? (POSTS.find(p => p.id === selected)  || POSTS[0])
   : section === "tools"   ? (TOOLS.find(t => t.id === selected)  || TOOLS[0])
   : null;
 
   const currentItem = () => {
-    if (section === "cves")    return <CVEDetail  cve={currentData}  />;
+    if (section === "cves")    return currentData.status ? <PendingCVEDetail cve={currentData} /> : <CVEDetail cve={currentData} />;
     if (section === "writing") return <PostDetail post={currentData} />;
     if (section === "tools")   return <ToolDetail tool={currentData} />;
     return <AboutPanel
@@ -1003,7 +1003,7 @@ export default function Portfolio() {
           </div>
 
           <div className="content-row">
-            <div className="article-wrap">
+            <div className="article-wrap" key={`${section}-${selected}`}>
               <Corners />
               {currentItem()}
             </div>
