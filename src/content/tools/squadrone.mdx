@@ -2,28 +2,33 @@
 name: squadrone
 lang: Python
 tagline: Multi-agent vulnerability research for WordPress plugins
-desc: A CLI research pipeline for WordPress plugin vulnerability hunting. Squadrone pulls plugin source, maps reachable attack surface, runs specialist LLM agents, triages findings against exploitability and bounty-scope rules, verifies survivors in an isolated Docker WordPress sandbox, deduplicates known issues, and writes private disclosure drafts for manual review.
+desc: An automated WordPress plugin vulnerability research pipeline that takes a WordPress.org slug from deterministic attack-surface coverage through specialist source review, evidence-based validation, clean-state sandbox reproduction, CVSS scoring, known-issue checks, and private Wordfence or Patchstack report drafts. Every decision is recorded, runs are resumable, and findings are never submitted automatically.
 install: |
   git clone https://github.com/pr0f94/Squadrone.git squadrone
   cd squadrone
   python3.12 -m venv .venv
   .venv/bin/python -m pip install -e ".[dev]"
+  .venv/bin/playwright install chromium
+  cp .env.example .env
 usage: |
-  squadrone scan hello-dolly
-  squadrone scan contact-form-7 --budget 5.00 --config pipelines/openai.yaml
-  squadrone scan contact-form-7 --version 5.3.1 --diff 5.3.0
-  squadrone scan-batch plugins.txt --concurrency 3 --triage-votes 3
-  squadrone scan-batch plugins.txt --budget 100 --config pipelines/openai-research.yaml --verbose --no-verify --chain --cross-file-taint --triage-votes 3
-  squadrone runs list
-  squadrone findings show <finding-id>
+  .venv/bin/squadrone scan hello-dolly
+  .venv/bin/squadrone scan contact-form-7 --budget 5
+  .venv/bin/squadrone scan contact-form-7 --version 5.3.1
+  .venv/bin/squadrone scan contact-form-7 --config pipelines/openai.yaml --verbose
+  .venv/bin/squadrone scan-batch plugins.txt --concurrency 3
+  .venv/bin/squadrone scan contact-form-7 --resume <run-id> --from verify
+  .venv/bin/squadrone scan contact-form-7 --triage-only
+  .venv/bin/squadrone scan contact-form-7 --verify-only
+  .venv/bin/squadrone manual list
+  .venv/bin/squadrone review <run-id>
 links:
   github: https://github.com/pr0f94/Squadrone
 features:
-  - One-command scans from a WordPress.org plugin slug
-  - Attack-surface mapping for AJAX, REST, forms, files, auth, SQL, payment logic, and rendering paths
-  - Specialist LLM agents with source-grounded plugin file tools
-  - Exploitability triage with balanced quality gates and manual-review routing
-  - Docker WordPress sandbox verification with iterative PoC attempts
-  - Known-vulnerability deduplication against Wordfence Intelligence and WPScan when API keys are configured
-  - Private disclosure report drafts with no auto-submit path
+  - Deterministic coverage and threat mapping across production source, entry points, storage, risky sinks, roles, capabilities, workflows, and call paths
+  - Four source-grounded specialist review areas covering authorization, injection and files, XSS lifecycle, and authentication
+  - Evidence gates for citations, reachability, controls, attacker role, security boundaries, and concrete confidentiality, integrity, or availability impact
+  - Isolated WordPress and MariaDB verification with structured attack and control oracles plus an exact clean-state PoC replay
+  - Resumable runs with atomic artifacts, reviewer checkpoints, deferred candidates, a manual queue, and a complete decision ledger
+  - CVSS v3.1 scoring and known-vulnerability checks against configured Wordfence Intelligence and WPScan sources
+  - Private Wordfence or Patchstack disclosure drafts with no automatic submission
 ---
