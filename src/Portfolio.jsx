@@ -33,11 +33,46 @@ const CVES = Object.entries(cveModules)
   .map(([path, mod]) => ({ id: idFromPath(path), Content: mod.default, ...mod.frontmatter }))
   .sort((a, b) => (b.year - a.year) || a.id.localeCompare(b.id));
 
-// Public-safe research entry for a vulnerability that is still under coordinated disclosure.
-// Keep identifying and technical details out of this object until publication is approved.
+// Public-safe research entries for vulnerabilities still under coordinated disclosure.
+// Keep identifying and technical details out of these objects until publication is approved.
 const PENDING_CVES = [
   {
     id: "pending-disclosure-01",
+    status: "Pending disclosure",
+    product: "Confidential software product",
+    type: "Severity unconfirmed",
+    summary: "A vulnerability identified and responsibly disclosed to the vendor. CVE assignment, severity, and technical details are pending publication.",
+  },
+  {
+    id: "pending-disclosure-02",
+    status: "Pending disclosure",
+    product: "Confidential software product",
+    type: "Severity unconfirmed",
+    summary: "A vulnerability identified and responsibly disclosed to the vendor. CVE assignment, severity, and technical details are pending publication.",
+  },
+  {
+    id: "pending-disclosure-03",
+    status: "Pending disclosure",
+    product: "Confidential software product",
+    type: "Severity unconfirmed",
+    summary: "A vulnerability identified and responsibly disclosed to the vendor. CVE assignment, severity, and technical details are pending publication.",
+  },
+  {
+    id: "pending-disclosure-04",
+    status: "Pending disclosure",
+    product: "Confidential software product",
+    type: "Severity unconfirmed",
+    summary: "A vulnerability identified and responsibly disclosed to the vendor. CVE assignment, severity, and technical details are pending publication.",
+  },
+  {
+    id: "pending-disclosure-05",
+    status: "Pending disclosure",
+    product: "Confidential software product",
+    type: "Severity unconfirmed",
+    summary: "A vulnerability identified and responsibly disclosed to the vendor. CVE assignment, severity, and technical details are pending publication.",
+  },
+  {
+    id: "pending-disclosure-06",
     status: "Pending disclosure",
     product: "Confidential software product",
     type: "Severity unconfirmed",
@@ -778,7 +813,7 @@ export default function Portfolio() {
                   {section === "cves" ? "Vulnerabilities" : section === "writing" ? "Articles" : section === "tools" ? "Open Source" : "Certifications"}
                 </div>
                 <div style={{ fontSize: "18px", fontWeight: 700, color: "#fff" }}>
-                  {section === "cves" ? CVES.length : section === "writing" ? POSTS.length : section === "tools" ? TOOLS.length : (about.certifications?.length || 0)}{" "}
+                  {section === "cves" ? CVES.length + PENDING_CVES.length : section === "writing" ? POSTS.length : section === "tools" ? TOOLS.length : (about.certifications?.length || 0)}{" "}
                   <span style={{ color: "rgba(255,255,255,0.5)", fontWeight: 400, fontSize: "14px" }}>
                     {section === "cves" ? "CVEs" : section === "writing" ? "posts" : section === "tools" ? "tools" : "certs"}
                   </span>
@@ -912,9 +947,9 @@ export default function Portfolio() {
                           <span style={{
                             fontSize: "10px", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase",
                             padding: "2px 8px", borderRadius: "10px",
-                            background: "rgba(56,189,248,0.08)", color: "#38bdf8",
-                            border: "1px solid rgba(56,189,248,0.35)",
-                            boxShadow: "0 0 6px rgba(56,189,248,0.25)",
+                            background: `${cert.color || "#38bdf8"}14`, color: cert.color || "#38bdf8",
+                            border: `1px solid ${cert.color || "#38bdf8"}59`,
+                            boxShadow: `0 0 6px ${cert.color || "#38bdf8"}40`,
                             flexShrink: 0,
                           }}>{cert.status}</span>
                         )}
