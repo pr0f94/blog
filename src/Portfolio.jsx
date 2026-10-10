@@ -31,7 +31,10 @@ const toolModules = import.meta.glob("./content/tools/*.mdx", { eager: true });
 
 const CVES = Object.entries(cveModules)
   .map(([path, mod]) => ({ id: idFromPath(path), Content: mod.default, ...mod.frontmatter }))
-  .sort((a, b) => (b.year - a.year) || a.id.localeCompare(b.id));
+  .sort((a, b) => {
+    const cveNumber = (id) => Number(id.split("-").pop()) || 0;
+    return (b.year - a.year) || (cveNumber(b.id) - cveNumber(a.id));
+  });
 
 // Public-safe research entries for vulnerabilities still under coordinated disclosure.
 // Keep identifying and technical details out of these objects until publication is approved.
@@ -59,20 +62,6 @@ const PENDING_CVES = [
   },
   {
     id: "pending-disclosure-04",
-    status: "Pending disclosure",
-    product: "Confidential software product",
-    type: "Severity unconfirmed",
-    summary: "A vulnerability identified and responsibly disclosed to the vendor. CVE assignment, severity, and technical details are pending publication.",
-  },
-  {
-    id: "pending-disclosure-05",
-    status: "Pending disclosure",
-    product: "Confidential software product",
-    type: "Severity unconfirmed",
-    summary: "A vulnerability identified and responsibly disclosed to the vendor. CVE assignment, severity, and technical details are pending publication.",
-  },
-  {
-    id: "pending-disclosure-06",
     status: "Pending disclosure",
     product: "Confidential software product",
     type: "Severity unconfirmed",
@@ -471,10 +460,10 @@ function RightRail({ section, item }) {
 // ─── HASH ROUTING ────────────────────────────────────────────────────────────
 const VALID_SECTIONS = ["cves", "writing", "tools", "about"];
 const parseHash = () => {
-  if (typeof window === "undefined") return { section: "cves", id: null };
+  if (typeof window === "undefined") return { section: "about", id: null };
   const raw = window.location.hash.replace(/^#\/?/, "");
   const [section, id] = raw.split("/");
-  if (!VALID_SECTIONS.includes(section)) return { section: "cves", id: null };
+  if (!VALID_SECTIONS.includes(section)) return { section: "about", id: null };
   return { section, id: id || null };
 };
 
@@ -491,6 +480,17 @@ export default function Portfolio() {
   const [section, setSection]   = useState(initial.section);
   const [selected, setSelected] = useState(initialSelected);
   const [mobileShowList, setMobileShowList] = useState(false);
+  const [cveQuery, setCveQuery] = useState("");
+  const [railExpanded, setRailExpanded] = useState(false);
+
+  const normalizedCveQuery = cveQuery.trim().toLowerCase();
+  const matchesCveQuery = (cve) => !normalizedCveQuery || [
+    cve.id, cve.status, cve.product, cve.type, cve.summary,
+    cve.severity, cve.version, cve.cvss, cve.year, ...(cve.tags || []),
+  ].filter(Boolean).join(" ").toLowerCase().includes(normalizedCveQuery);
+  const visiblePendingCves = PENDING_CVES.filter(matchesCveQuery);
+  const visibleCves = CVES.filter(matchesCveQuery);
+  const visibleCveCount = visiblePendingCves.length + visibleCves.length;
 
   // State → URL hash
   useEffect(() => {
@@ -540,7 +540,7 @@ export default function Portfolio() {
     if (section === "tools")   return <ToolDetail tool={currentData} />;
     return <AboutPanel
       stats={[
-        { val: String(CVES.length),  label: "CVEs" },
+        { val: String(CVES.length + PENDING_CVES.length), label: "CVEs" },
         { val: String(TOOLS.length), label: "Tools" },
       ]}
       components={mdxComponents}
@@ -556,17 +556,17 @@ export default function Portfolio() {
   })();
 
   const navItems = [
+    { id: "about",   label: "About",
+      Icon: () => <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><circle cx="9" cy="6" r="3" stroke="currentColor" strokeWidth="1.4"/><path d="M2.5 16c0-3.6 3-6.5 6.5-6.5s6.5 2.9 6.5 6.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+    },
     { id: "cves",    label: "CVEs",
       Icon: () => <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M9 1.5L15.5 4.5V9C15.5 12.5 12.7 15.7 9 16.5C5.3 15.7 2.5 12.5 2.5 9V4.5L9 1.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M9 6v4M9 12h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
     },
     { id: "writing", label: "Writing",
-      Icon: () => <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3 13.5L4.5 9 12.5 1 17 5.5 9 13.5 4.5 15z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M11 3l4 4M3 13.5L4.5 15" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+      Icon: () => <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M2.5 3.5h4A2.5 2.5 0 0 1 9 6v9a2 2 0 0 0-2-2H2.5V3.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M15.5 3.5h-4A2.5 2.5 0 0 0 9 6v9a2 2 0 0 1 2-2h4.5V3.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/></svg>
     },
     { id: "tools",   label: "Tools",
-      Icon: () => <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M14 3.5c1 1 1 3.5-1 5L9.5 12 6 15.5 2.5 12 6 8.5l3.5-3.5c1.5-2 3.5-2.5 4.5-1.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><circle cx="4.5" cy="13.5" r="0.8" fill="currentColor"/></svg>
-    },
-    { id: "about",   label: "About",
-      Icon: () => <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><circle cx="9" cy="6" r="3" stroke="currentColor" strokeWidth="1.4"/><path d="M2.5 16c0-3.6 3-6.5 6.5-6.5s6.5 2.9 6.5 6.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+      Icon: () => <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3 13.5L4.5 9 12.5 1 17 5.5 9 13.5 4.5 15z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M11 3l4 4M3 13.5L4.5 15" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
     },
   ];
 
@@ -619,7 +619,17 @@ export default function Portfolio() {
           border-right: 1px solid rgba(255,255,255,0.07);
           display: flex; flex-direction: column;
           align-items: center; padding-top: 16px; gap: 4px;
+          transition: width 0.18s ease;
         }
+        .rail.expanded { width: 176px; }
+        .rail.expanded .logo-mark { align-self: flex-start; margin-left: 12px; }
+        .rail > .nav-btn { width: 40px; justify-content: center; padding: 0; }
+        .rail.expanded > .nav-btn { width: 160px; justify-content: flex-start; padding: 0 11px; gap: 10px; }
+        .nav-label {
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+          font-size: 13px; font-weight: 600;
+        }
+        .rail-toggle { margin-top: auto; margin-bottom: 12px; }
         .list-col {
           width: 240px; flex-shrink: 0; background: #141414;
           border-right: 1px solid rgba(255,255,255,0.07);
@@ -629,6 +639,13 @@ export default function Portfolio() {
         .article-wrap { position: relative; flex: 1; min-width: 0; max-width: 780px; }
         .detail-panel { padding: 36px 40px 36px 64px; max-width: 780px; }
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .about-header { display: flex; align-items: center; gap: 24px; margin-bottom: 32px; }
+        .about-portrait {
+          width: 176px; height: 176px; flex-shrink: 0; object-fit: cover;
+          object-position: center 30%; border-radius: 18px;
+          border: 1px solid rgba(255,255,255,0.12);
+          box-shadow: 0 18px 45px rgba(0,0,0,0.28);
+        }
 
         .mobile-toggle { display: none; }
         .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; display: block; }
@@ -647,13 +664,16 @@ export default function Portfolio() {
         @media (max-width: 720px) {
           html, body { overflow: auto; height: auto; }
           .shell { flex-direction: column; height: auto; min-height: 100vh; overflow: visible; }
-          .rail {
+          .rail, .rail.expanded {
             width: 100%; height: 56px; flex-direction: row;
             padding: 0 12px; gap: 4px; align-items: center; padding-top: 0;
             border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07);
             position: sticky; top: 0; z-index: 20; overflow-x: auto;
           }
           .rail .logo-mark { margin-bottom: 0 !important; margin-right: 8px; }
+          .rail.expanded .logo-mark { align-self: auto; margin-left: 0; }
+          .rail > .nav-btn, .rail.expanded > .nav-btn { width: 40px; padding: 0; justify-content: center; }
+          .rail .nav-label, .rail .rail-toggle { display: none; }
           .rail .nav-active-bar { display: none; }
           .list-col {
             width: 100%;
@@ -662,7 +682,14 @@ export default function Portfolio() {
           .list-col.collapsed .list-scroll { display: none; }
           .content-col { overflow: visible; }
           .detail-panel { padding: 24px 18px; }
+          .about-header { gap: 18px; }
+          .about-portrait { width: 136px; height: 136px; border-radius: 14px; }
           .mobile-toggle { display: inline-flex; }
+        }
+
+        @media (max-width: 480px) {
+          .about-header { align-items: flex-start; flex-direction: column; }
+          .about-portrait { width: 100%; height: auto; aspect-ratio: 4 / 3; }
         }
 
         @media (max-width: 380px) {
@@ -753,7 +780,7 @@ export default function Portfolio() {
       <div className="shell">
 
         {/* ── COL 1: SECTION RAIL ── */}
-        <nav className="rail" aria-label="Primary">
+        <nav className={`rail ${railExpanded ? "expanded" : ""}`} aria-label="Primary">
           <div className="logo-mark" aria-hidden="true" style={{
             width: 32, height: 32, borderRadius: "8px",
             background: "#0a0a0a",
@@ -773,13 +800,14 @@ export default function Portfolio() {
                 aria-current={active ? "page" : undefined}
                 onClick={() => switchSection(id)}
                 style={{
-                  width: 40, height: 40, borderRadius: "10px", border: "none",
+                  height: 40, borderRadius: "10px", border: "none",
                   background: active ? "rgba(255,255,255,0.1)" : "transparent",
                   color: active ? "#fff" : "rgba(255,255,255,0.55)",
-                  cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: "pointer", display: "flex", alignItems: "center",
                   position: "relative", flexShrink: 0,
                 }}>
                 <Icon />
+                {railExpanded && <span className="nav-label">{label}</span>}
                 {active && (
                   <span className="nav-active-bar" aria-hidden="true" style={{
                     position: "absolute", left: -1, top: "50%", transform: "translateY(-50%)",
@@ -790,6 +818,27 @@ export default function Portfolio() {
               </button>
             );
           })}
+
+          <button
+            type="button"
+            className="nav-btn rail-toggle"
+            aria-label={railExpanded ? "Collapse navigation" : "Expand navigation"}
+            aria-expanded={railExpanded}
+            onClick={() => setRailExpanded(expanded => !expanded)}
+            style={{
+              height: 40, borderRadius: "10px", border: "none", background: "transparent",
+              color: "rgba(255,255,255,0.55)", cursor: "pointer", display: "flex",
+              alignItems: "center", position: "relative", flexShrink: 0,
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <path
+                d={railExpanded ? "M11 4L6 9l5 5" : "M7 4l5 5-5 5"}
+                stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+              />
+            </svg>
+            {railExpanded && <span className="nav-label">Collapse</span>}
+          </button>
         </nav>
 
         {/* ── COL 2: ITEM LIST ── */}
@@ -806,37 +855,97 @@ export default function Portfolio() {
               padding: "16px 16px 12px",
               borderBottom: "1px solid rgba(255,255,255,0.06)",
               flexShrink: 0,
-              display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px",
             }}>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: "11px", fontWeight: 600, color: "rgba(255,255,255,0.5)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "2px" }}>
-                  {section === "cves" ? "Vulnerabilities" : section === "writing" ? "Articles" : section === "tools" ? "Open Source" : "Certifications"}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: "11px", fontWeight: 600, color: "rgba(255,255,255,0.5)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "2px" }}>
+                    {section === "cves" ? "Vulnerabilities" : section === "writing" ? "Articles" : section === "tools" ? "Open Source" : "Certifications"}
+                  </div>
+                  <div style={{ fontSize: "18px", fontWeight: 700, color: "#fff" }}>
+                    {section === "cves" ? CVES.length + PENDING_CVES.length : section === "writing" ? POSTS.length : section === "tools" ? TOOLS.length : (about.certifications?.length || 0)}{" "}
+                    <span style={{ color: "rgba(255,255,255,0.5)", fontWeight: 400, fontSize: "14px" }}>
+                      {section === "cves" ? "CVEs" : section === "writing" ? "posts" : section === "tools" ? "tools" : "certs"}
+                    </span>
+                  </div>
                 </div>
-                <div style={{ fontSize: "18px", fontWeight: 700, color: "#fff" }}>
-                  {section === "cves" ? CVES.length + PENDING_CVES.length : section === "writing" ? POSTS.length : section === "tools" ? TOOLS.length : (about.certifications?.length || 0)}{" "}
-                  <span style={{ color: "rgba(255,255,255,0.5)", fontWeight: 400, fontSize: "14px" }}>
-                    {section === "cves" ? "CVEs" : section === "writing" ? "posts" : section === "tools" ? "tools" : "certs"}
-                  </span>
-                </div>
+                <button
+                  type="button"
+                  className="mobile-toggle nav-btn"
+                  aria-expanded={mobileShowList}
+                  aria-controls="list-scroll"
+                  onClick={() => setMobileShowList(v => !v)}
+                  style={{
+                    background: "transparent", border: "1px solid rgba(255,255,255,0.12)",
+                    color: "rgba(255,255,255,0.75)", padding: "6px 10px", borderRadius: "6px",
+                    cursor: "pointer", fontSize: "12px", fontFamily: "inherit",
+                  }}
+                >{mobileShowList ? "Hide" : "Show"}</button>
               </div>
-              <button
-                type="button"
-                className="mobile-toggle nav-btn"
-                aria-expanded={mobileShowList}
-                aria-controls="list-scroll"
-                onClick={() => setMobileShowList(v => !v)}
-                style={{
-                  background: "transparent", border: "1px solid rgba(255,255,255,0.12)",
-                  color: "rgba(255,255,255,0.75)", padding: "6px 10px", borderRadius: "6px",
-                  cursor: "pointer", fontSize: "12px", fontFamily: "inherit",
-                }}
-              >{mobileShowList ? "Hide" : "Show"}</button>
+
+              {section === "cves" && (
+                <div style={{ marginTop: "12px" }}>
+                  <div style={{ position: "relative" }}>
+                    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 18 18" fill="none"
+                         style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.42)", pointerEvents: "none" }}>
+                      <circle cx="7.5" cy="7.5" r="4.75" stroke="currentColor" strokeWidth="1.5" />
+                      <path d="M11 11l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                    <input
+                      type="search"
+                      value={cveQuery}
+                      onChange={(event) => setCveQuery(event.target.value)}
+                      placeholder="Search CVEs..."
+                      aria-label="Search CVEs"
+                      aria-describedby="cve-search-status"
+                      style={{
+                        width: "100%", height: 34, padding: "0 10px 0 32px",
+                        borderRadius: "7px", border: "1px solid rgba(255,255,255,0.1)",
+                        background: "rgba(255,255,255,0.045)", color: "#fff",
+                        fontFamily: "'JetBrains Mono', monospace", fontSize: "11px",
+                      }}
+                    />
+                  </div>
+                  <div id="cve-search-status" aria-live="polite" style={{ minHeight: 14, marginTop: "5px", fontSize: "10px", color: "rgba(255,255,255,0.45)" }}>
+                    {normalizedCveQuery ? `${visibleCveCount} ${visibleCveCount === 1 ? "match" : "matches"}` : "Search by ID, product, type, or severity"}
+                  </div>
+                </div>
+              )}
             </div>
 
             <ul id="list-scroll" className="scroll-area list-scroll" role="list"
                 style={{ flex: 1, listStyle: "none", padding: 0, margin: 0 }}>
 
-              {section === "cves" && PENDING_CVES.map(cve => {
+              {section === "cves" && visibleCves.map(cve => {
+                const active = selected === cve.id;
+                return (
+                  <li key={cve.id}>
+                    <button type="button" className="list-item"
+                      aria-current={active ? "true" : undefined}
+                      onClick={() => selectItem(cve.id)}
+                      style={{
+                        width: "100%", textAlign: "left", border: "none", color: "inherit", font: "inherit",
+                        background: active ? "rgba(255,255,255,0.06)" : "transparent",
+                        padding: "13px 16px",
+                        borderBottom: "1px solid rgba(255,255,255,0.04)",
+                        borderLeft: active ? "2px solid #fff" : "2px solid transparent",
+                        cursor: "pointer", display: "block",
+                      }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px", marginBottom: "5px" }}>
+                        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: active ? "#fff" : "rgba(255,255,255,0.7)", fontWeight: 500 }}>
+                          {cve.id}
+                        </span>
+                        <Badge label={cve.severity} sev={cve.severity} />
+                      </div>
+                      <div className="truncate" style={{ fontSize: "13px", color: active ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.75)", fontWeight: 500, lineHeight: 1.3 }}>
+                        {cve.product}
+                      </div>
+                      <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.5)", marginTop: "4px" }}>{cve.type}</div>
+                    </button>
+                  </li>
+                );
+              })}
+
+              {section === "cves" && visiblePendingCves.map(cve => {
                 const active = selected === cve.id;
                 return (
                   <li key={cve.id}>
@@ -866,35 +975,11 @@ export default function Portfolio() {
                 );
               })}
 
-              {section === "cves" && CVES.map(cve => {
-                const active = selected === cve.id;
-                return (
-                  <li key={cve.id}>
-                    <button type="button" className="list-item"
-                      aria-current={active ? "true" : undefined}
-                      onClick={() => selectItem(cve.id)}
-                      style={{
-                        width: "100%", textAlign: "left", border: "none", color: "inherit", font: "inherit",
-                        background: active ? "rgba(255,255,255,0.06)" : "transparent",
-                        padding: "13px 16px",
-                        borderBottom: "1px solid rgba(255,255,255,0.04)",
-                        borderLeft: active ? "2px solid #fff" : "2px solid transparent",
-                        cursor: "pointer", display: "block",
-                      }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px", marginBottom: "5px" }}>
-                        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: active ? "#fff" : "rgba(255,255,255,0.7)", fontWeight: 500 }}>
-                          {cve.id}
-                        </span>
-                        <Badge label={cve.severity} sev={cve.severity} />
-                      </div>
-                      <div className="truncate" style={{ fontSize: "13px", color: active ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.75)", fontWeight: 500, lineHeight: 1.3 }}>
-                        {cve.product}
-                      </div>
-                      <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.5)", marginTop: "4px" }}>{cve.type}</div>
-                    </button>
-                  </li>
-                );
-              })}
+              {section === "cves" && visibleCveCount === 0 && (
+                <li style={{ padding: "28px 18px", textAlign: "center", color: "rgba(255,255,255,0.5)", fontSize: "12px", lineHeight: 1.6 }}>
+                  No CVEs match “{cveQuery.trim()}”.
+                </li>
+              )}
 
               {section === "writing" && POSTS.map(post => {
                 const active = selected === post.id;
