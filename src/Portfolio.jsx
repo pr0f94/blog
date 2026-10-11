@@ -88,6 +88,100 @@ const SEV_META = {
 
 const SOCIAL = about.socials;
 
+const CONSULTATION_OFFERS = [
+  {
+    id: "discovery-call",
+    title: "Discovery Call",
+    duration: "15 mins",
+    price: "Free",
+    bookingUrl: "https://topmate.io/deva_parekh/2349859",
+    summary: "Discuss your goals and how I can help",
+    bullets: [
+      "Introduce yourself and share your goals",
+      "Discuss the support you are looking for",
+      "Find the right session for your next step",
+    ],
+  },
+  {
+    id: "career-guidance",
+    title: "Career guidance",
+    duration: "30 mins",
+    price: "£30",
+    bookingUrl: "https://topmate.io/deva_parekh/2349857",
+    summary: "Plan your next move in security or big tech",
+    bullets: [
+      "Explore AppSec, product security, and security engineering roles",
+      "Discuss moving from software development into security",
+      "Identify skills and experience to focus on next",
+    ],
+  },
+  {
+    id: "interview-prep",
+    title: "Interview prep & tips",
+    duration: "30 mins",
+    price: "£35",
+    bookingUrl: "https://topmate.io/deva_parekh/2349854",
+    summary: "Prepare for security interviews with practical tips",
+    bullets: [
+      "Understand what to expect in security interviews",
+      "Focus your preparation on your target role",
+      "Structure technical answers and explain your experience",
+    ],
+  },
+  {
+    id: "mock-interview",
+    title: "Mock interview",
+    duration: "60 mins",
+    price: "£65",
+    bookingUrl: "https://topmate.io/deva_parekh/2349855",
+    summary: "Practise security interviews with actionable feedback",
+    bullets: [
+      "Practise technical and scenario-based security questions",
+      "Explain your reasoning in a realistic interview setting",
+      "Get feedback on your answers and communication",
+    ],
+  },
+  {
+    id: "quick-chat",
+    title: "Quick chat",
+    duration: "30 mins",
+    price: "£25",
+    bookingUrl: "https://topmate.io/deva_parekh/2349853",
+    summary: "Get answers on AppSec, certifications, and tech careers",
+    bullets: [
+      "Talk through a specific AppSec or career question",
+      "Discuss certification choices and study approaches",
+      "Get a practical perspective on working in tech",
+    ],
+  },
+  {
+    id: "mentorship",
+    title: "1:1 Mentorship",
+    duration: "30 mins",
+    price: "£35",
+    bookingUrl: "https://topmate.io/deva_parekh/2349858",
+    summary: "Build your AppSec skills with personalised guidance",
+    bullets: [
+      "Threat modelling and secure code review",
+      "Choose practical projects and build a learning roadmap",
+      "OSCP, OSEP, OSWE, and OSED study guidance",
+    ],
+  },
+  {
+    id: "resume-review",
+    title: "Resume review",
+    duration: "30 mins",
+    price: "£35",
+    bookingUrl: "https://topmate.io/deva_parekh/2349856",
+    summary: "Strengthen your resume for security roles",
+    bullets: [
+      "Review your resume structure, wording, and impact",
+      "Highlight relevant projects and technical experience",
+      "Present your strengths for your target security role",
+    ],
+  },
+];
+
 // ─── ATOMS ───────────────────────────────────────────────────────────────────
 
 const Badge = ({ label, sev }) => {
@@ -387,6 +481,58 @@ const ToolDetail = ({ tool }) => (
 );
 
 
+const ConsultationDetail = ({ offer }) => (
+  <article className="detail-panel" aria-labelledby="consulting-title">
+    <header style={{ marginBottom: "28px" }}>
+      <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "14px", flexWrap: "wrap" }}>
+        <span style={{
+          padding: "3px 10px", borderRadius: "4px", fontSize: "11px", fontWeight: 700,
+          background: "rgba(0,201,167,0.10)", color: "#7be0c8", letterSpacing: "0.04em",
+        }}>1:1 Video Call</span>
+        <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)" }}>{offer.duration}</span>
+        <span style={{ fontSize: "12px", color: "#7be0c8", fontWeight: 700 }}>{offer.price}</span>
+      </div>
+      <h1 id="consulting-title" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "28px", fontWeight: 700, color: "#fff", lineHeight: 1.25, letterSpacing: "-0.02em", marginBottom: "16px" }}>
+        {offer.title}
+      </h1>
+      <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.72)", lineHeight: 1.75, borderLeft: "3px solid rgba(255,255,255,0.12)", paddingLeft: "16px" }}>
+        I bring a decade of experience across software engineering and security, including working at FAANG and other tech companies. These sessions offer practical guidance on AppSec, security careers, certifications, and interviews, based on where you are and what you want to do next.
+      </p>
+    </header>
+
+    <section style={{ marginBottom: "28px" }}>
+      <h2 style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "21px", fontWeight: 700, color: "#fff", margin: "0 0 8px", letterSpacing: "-0.01em", lineHeight: 1.25 }}>What this is for</h2>
+      <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.72)", lineHeight: 1.75, marginBottom: "12px" }}>{offer.summary}</p>
+      <ul style={{ paddingLeft: 0, listStyle: "none", margin: 0 }}>
+        {offer.bullets.map((item) => (
+          <li key={item} style={{ display: "flex", gap: "10px", alignItems: "flex-start", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.05)", fontSize: "14px", color: "rgba(255,255,255,0.72)", lineHeight: 1.55 }}>
+            <span aria-hidden="true" style={{ color: "#a8ff78", fontSize: "12px", marginTop: "2px" }}>✓</span> {item}
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section style={{ marginBottom: "28px" }}>
+      <h2 style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "21px", fontWeight: 700, color: "#fff", margin: "0 0 8px", letterSpacing: "-0.01em", lineHeight: 1.25 }}>How it works</h2>
+      <p style={{ fontSize: "14.5px", color: "rgba(255,255,255,0.72)", lineHeight: 1.85, margin: "8px 0" }}>
+        Choose a time through Topmate. Before the call, share the context relevant to your session: your resume, a target job description, a study plan, or the questions you want to discuss. For a discovery call, a brief introduction and your goals are enough.
+      </p>
+      <p style={{ fontSize: "14.5px", color: "rgba(255,255,255,0.72)", lineHeight: 1.85, margin: "8px 0" }}>
+        Booking and payment are handled through Topmate. This session is {offer.duration} and costs {offer.price === "Free" ? "nothing to book" : offer.price}.
+      </p>
+    </section>
+
+    <a href={offer.bookingUrl} target="_blank" rel="noopener noreferrer" className="ext-link"
+       style={{
+         display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "13px",
+         color: "rgba(255,255,255,0.9)", textDecoration: "none", padding: "9px 14px",
+         borderRadius: "6px", border: "1px solid rgba(255,255,255,0.16)",
+         fontFamily: "'JetBrains Mono', monospace",
+       }}>Book {offer.title} on Topmate ↗</a>
+  </article>
+);
+
+
 // ─── RIGHT RAIL (TOC + metadata) ─────────────────────────────────────────────
 
 // Four bracket-corner marks framing the article column
@@ -458,7 +604,7 @@ function RightRail({ section, item }) {
 }
 
 // ─── HASH ROUTING ────────────────────────────────────────────────────────────
-const VALID_SECTIONS = ["cves", "writing", "tools", "about"];
+const VALID_SECTIONS = ["cves", "writing", "tools", "consulting", "about"];
 const parseHash = () => {
   if (typeof window === "undefined") return { section: "about", id: null };
   const raw = window.location.hash.replace(/^#\/?/, "");
@@ -474,6 +620,7 @@ export default function Portfolio() {
     if (initial.section === "cves")    return [...CVES, ...PENDING_CVES].find(c => c.id === initial.id)?.id  || CVES[0].id;
     if (initial.section === "writing") return POSTS.find(p => p.id === initial.id)?.id || POSTS[0].id;
     if (initial.section === "tools")   return TOOLS.find(t => t.id === initial.id)?.id || TOOLS[0].id;
+    if (initial.section === "consulting") return CONSULTATION_OFFERS.find(o => o.id === initial.id)?.id || CONSULTATION_OFFERS[0].id;
     return "about";
   })();
 
@@ -508,6 +655,7 @@ export default function Portfolio() {
       if (s === "cves")         setSelected([...CVES, ...PENDING_CVES].find(c => c.id === id)?.id  || CVES[0].id);
       else if (s === "writing") setSelected(POSTS.find(p => p.id === id)?.id || POSTS[0].id);
       else if (s === "tools")   setSelected(TOOLS.find(t => t.id === id)?.id || TOOLS[0].id);
+      else if (s === "consulting") setSelected(CONSULTATION_OFFERS.find(o => o.id === id)?.id || CONSULTATION_OFFERS[0].id);
       else                      setSelected("about");
     };
     window.addEventListener("hashchange", onHash);
@@ -519,6 +667,7 @@ export default function Portfolio() {
     if      (id === "cves")    setSelected(CVES[0].id);
     else if (id === "writing") setSelected(POSTS[0].id);
     else if (id === "tools")   setSelected(TOOLS[0].id);
+    else if (id === "consulting") setSelected(CONSULTATION_OFFERS[0].id);
     else                       setSelected("about");
     setMobileShowList(true);
   }, []);
@@ -532,12 +681,14 @@ export default function Portfolio() {
     section === "cves"    ? ([...CVES, ...PENDING_CVES].find(c => c.id === selected) || CVES[0])
   : section === "writing" ? (POSTS.find(p => p.id === selected)  || POSTS[0])
   : section === "tools"   ? (TOOLS.find(t => t.id === selected)  || TOOLS[0])
+  : section === "consulting" ? (CONSULTATION_OFFERS.find(o => o.id === selected) || CONSULTATION_OFFERS[0])
   : null;
 
   const currentItem = () => {
     if (section === "cves")    return currentData.status ? <PendingCVEDetail cve={currentData} /> : <CVEDetail cve={currentData} />;
     if (section === "writing") return <PostDetail post={currentData} />;
     if (section === "tools")   return <ToolDetail tool={currentData} />;
+    if (section === "consulting") return <ConsultationDetail offer={currentData} />;
     return <AboutPanel
       stats={[
         { val: String(CVES.length + PENDING_CVES.length), label: "CVEs" },
@@ -552,6 +703,7 @@ export default function Portfolio() {
     if (section === "cves")    return currentData.status ? currentData.status : selected;
     if (section === "writing") return POSTS.find(p => p.id === selected)?.title || "";
     if (section === "tools")   return `~/${selected}`;
+    if (section === "consulting") return CONSULTATION_OFFERS.find(o => o.id === selected)?.title || "";
     return "";
   })();
 
@@ -567,6 +719,9 @@ export default function Portfolio() {
     },
     { id: "tools",   label: "Tools",
       Icon: () => <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3 13.5L4.5 9 12.5 1 17 5.5 9 13.5 4.5 15z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M11 3l4 4M3 13.5L4.5 15" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+    },
+    { id: "consulting", label: "Consulting",
+      Icon: () => <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3 4.5h12v7H8l-3.5 3v-3H3v-7Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M6 7h6M6 9.5h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
     },
   ];
 
@@ -848,6 +1003,7 @@ export default function Portfolio() {
               section === "cves" ? "CVE list"
               : section === "writing" ? "Article list"
               : section === "tools" ? "Tools list"
+              : section === "consulting" ? "Consultation list"
               : "Certifications list"
             }
           >
@@ -859,12 +1015,12 @@ export default function Portfolio() {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: "11px", fontWeight: 600, color: "rgba(255,255,255,0.5)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "2px" }}>
-                    {section === "cves" ? "Vulnerabilities" : section === "writing" ? "Articles" : section === "tools" ? "Open Source" : "Certifications"}
+                    {section === "cves" ? "Vulnerabilities" : section === "writing" ? "Articles" : section === "tools" ? "Open Source" : section === "consulting" ? "Sessions" : "Certifications"}
                   </div>
                   <div style={{ fontSize: "18px", fontWeight: 700, color: "#fff" }}>
-                    {section === "cves" ? CVES.length + PENDING_CVES.length : section === "writing" ? POSTS.length : section === "tools" ? TOOLS.length : (about.certifications?.length || 0)}{" "}
+                    {section === "cves" ? CVES.length + PENDING_CVES.length : section === "writing" ? POSTS.length : section === "tools" ? TOOLS.length : section === "consulting" ? CONSULTATION_OFFERS.length : (about.certifications?.length || 0)}{" "}
                     <span style={{ color: "rgba(255,255,255,0.5)", fontWeight: 400, fontSize: "14px" }}>
-                      {section === "cves" ? "CVEs" : section === "writing" ? "posts" : section === "tools" ? "tools" : "certs"}
+                      {section === "cves" ? "CVEs" : section === "writing" ? "posts" : section === "tools" ? "tools" : section === "consulting" ? "options" : "certs"}
                     </span>
                   </div>
                 </div>
@@ -905,8 +1061,8 @@ export default function Portfolio() {
                       }}
                     />
                   </div>
-                  <div id="cve-search-status" aria-live="polite" style={{ minHeight: 14, marginTop: "5px", fontSize: "10px", color: "rgba(255,255,255,0.45)" }}>
-                    {normalizedCveQuery ? `${visibleCveCount} ${visibleCveCount === 1 ? "match" : "matches"}` : "Search by ID, product, type, or severity"}
+                  <div id="cve-search-status" aria-live="polite" style={{ marginTop: normalizedCveQuery ? "5px" : 0, fontSize: "10px", color: "rgba(255,255,255,0.45)" }}>
+                    {normalizedCveQuery ? `${visibleCveCount} ${visibleCveCount === 1 ? "match" : "matches"}` : ""}
                   </div>
                 </div>
               )}
@@ -1080,6 +1236,32 @@ export default function Portfolio() {
                 );
               })}
 
+              {section === "consulting" && CONSULTATION_OFFERS.map((offer) => {
+                const active = selected === offer.id;
+                return (
+                  <li key={offer.id}>
+                    <button type="button" className="list-item"
+                      aria-current={active ? "true" : undefined}
+                      onClick={() => selectItem(offer.id)}
+                      style={{
+                        width: "100%", textAlign: "left", border: "none", color: "inherit", font: "inherit",
+                        background: active ? "rgba(255,255,255,0.06)" : "transparent",
+                        padding: "14px 16px",
+                        borderBottom: "1px solid rgba(255,255,255,0.04)",
+                        borderLeft: active ? "2px solid #fff" : "2px solid transparent",
+                        cursor: "pointer", display: "block",
+                      }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px", gap: "8px" }}>
+                        <span className="truncate" style={{ fontSize: "13px", color: active ? "#fff" : "rgba(255,255,255,0.82)", fontWeight: 700 }}>{offer.title}</span>
+                        <span style={{ fontSize: "10px", color: "#7be0c8", fontWeight: 700, flexShrink: 0 }}>{offer.duration}</span>
+                      </div>
+                      <div className="clamp-2" style={{ fontSize: "12px", color: "rgba(255,255,255,0.62)", lineHeight: 1.4 }}>{offer.summary}</div>
+                      <div style={{ fontSize: "12px", color: "#7be0c8", fontWeight: 700, marginTop: "8px" }}>{offer.price}</div>
+                    </button>
+                  </li>
+                );
+              })}
+
             </ul>
           </aside>
 
@@ -1119,6 +1301,12 @@ export default function Portfolio() {
                    padding: "4px 10px", borderRadius: "4px", border: "1px solid rgba(255,255,255,0.1)",
                    fontFamily: "'JetBrains Mono', monospace",
                  }}>linkedin ↗</a>
+              <a href="https://topmate.io/deva_parekh" target="_blank" rel="noopener noreferrer" className="ext-link"
+                 style={{
+                   fontSize: "11px", color: "rgba(255,255,255,0.6)", textDecoration: "none",
+                   padding: "4px 10px", borderRadius: "4px", border: "1px solid rgba(255,255,255,0.1)",
+                   fontFamily: "'JetBrains Mono', monospace",
+                 }}>topmate ↗</a>
             </div>
           </div>
 
