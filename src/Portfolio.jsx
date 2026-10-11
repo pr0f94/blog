@@ -535,16 +535,6 @@ const ConsultationDetail = ({ offer }) => (
 
 // ─── RIGHT RAIL (TOC + metadata) ─────────────────────────────────────────────
 
-// Four bracket-corner marks framing the article column
-const Corners = () => (
-  <>
-    <span className="corner tl" aria-hidden="true" />
-    <span className="corner tr" aria-hidden="true" />
-    <span className="corner bl" aria-hidden="true" />
-    <span className="corner br" aria-hidden="true" />
-  </>
-);
-
 function RightRail({ section, item }) {
   // Headings come from the rendered MDX DOM (rehype-slug adds the ids).
   const [headings, setHeadings] = useState([]);
@@ -689,13 +679,7 @@ export default function Portfolio() {
     if (section === "writing") return <PostDetail post={currentData} />;
     if (section === "tools")   return <ToolDetail tool={currentData} />;
     if (section === "consulting") return <ConsultationDetail offer={currentData} />;
-    return <AboutPanel
-      stats={[
-        { val: String(CVES.length + PENDING_CVES.length), label: "CVEs" },
-        { val: String(TOOLS.length), label: "Tools" },
-      ]}
-      components={mdxComponents}
-    />;
+    return <AboutPanel components={mdxComponents} />;
   };
 
   const breadcrumbLabel = (() => {
@@ -754,6 +738,17 @@ export default function Portfolio() {
         .list-item:hover { background: rgba(255,255,255,0.05) !important; }
         .cert-row { display: block; background: transparent; }
         .cert-row:nth-child(even) > div { background: rgba(255,255,255,0.01); }
+        .cert-row-osce3 > div { position: relative; overflow: hidden; isolation: isolate; }
+        .cert-row-osce3 > div::before {
+          content: ''; position: absolute; inset: 0; z-index: -1;
+          background: linear-gradient(to right, rgba(20,20,20,0.95), rgba(20,20,20,0.85) 55%, rgba(20,20,20,0.35));
+          pointer-events: none;
+        }
+        .cert-row-osce3 .cert-badge-outline {
+          position: absolute; inset: 0; width: 100%; height: 100%;
+          object-fit: cover; object-position: center; opacity: 1;
+          pointer-events: none; z-index: -2;
+        }
         .nav-btn { transition: background 0.12s ease, color 0.12s ease; }
         .nav-btn:hover { background: rgba(255,255,255,0.06) !important; color: rgba(255,255,255,0.85) !important; }
         .copy-btn:hover { border-color: rgba(255,255,255,0.3) !important; color: rgba(255,255,255,0.95) !important; }
@@ -793,7 +788,6 @@ export default function Portfolio() {
         .content-col { flex: 1; background: #111; overflow: hidden auto; }
         .article-wrap { position: relative; flex: 1; min-width: 0; max-width: 780px; }
         .detail-panel { padding: 36px 40px 36px 64px; max-width: 780px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
         .about-header { display: flex; align-items: center; gap: 24px; margin-bottom: 32px; }
         .about-portrait {
           width: 176px; height: 176px; flex-shrink: 0; object-fit: cover;
@@ -847,10 +841,6 @@ export default function Portfolio() {
           .about-portrait { width: 100%; height: auto; aspect-ratio: 4 / 3; }
         }
 
-        @media (max-width: 380px) {
-          .stats-grid { grid-template-columns: 1fr 1fr; }
-        }
-
         /* ── Right rail ── */
         .content-row { display: flex; align-items: flex-start; gap: 32px; width: 100%; }
         .right-rail {
@@ -894,19 +884,7 @@ export default function Portfolio() {
         .right-rail::-webkit-scrollbar { width: 4px; }
         .right-rail::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
 
-        /* Corner brackets framing the article column */
-        .corner {
-          position: absolute; width: 14px; height: 14px;
-          border: 0 solid rgba(255,255,255,0.22);
-          pointer-events: none; z-index: 5;
-        }
-        .corner.tl { top: 16px; left: 44px;  border-top-width: 1px; border-left-width: 1px; }
-        .corner.tr { top: 16px; right: 20px; border-top-width: 1px; border-right-width: 1px; }
-        .corner.bl { bottom: 16px; left: 44px;  border-bottom-width: 1px; border-left-width: 1px; }
-        .corner.br { bottom: 16px; right: 20px; border-bottom-width: 1px; border-right-width: 1px; }
-
         @media (max-width: 1100px) { .right-rail { display: none; } }
-        @media (max-width: 720px) { .corner { display: none; } }
 
         /* Tight binding: anything immediately after an h2 tucks in close */
         .md-h2 + p,
@@ -1170,7 +1148,7 @@ export default function Portfolio() {
 
               {section === "about" && (about.certifications || []).map((cert) => {
                 return (
-                  <li key={cert.id} className="cert-row">
+                  <li key={cert.id} className={`cert-row${cert.id === "osce3" ? " cert-row-osce3" : ""}`}>
                     <div
                       aria-disabled="true"
                       style={{
@@ -1180,10 +1158,18 @@ export default function Portfolio() {
                         borderLeft: "2px solid transparent",
                         cursor: "default", display: "block",
                       }}>
+                      {cert.id === "osce3" && (
+                        <img className="cert-badge-outline" src="images/osce3-outline.svg" alt="" aria-hidden="true" />
+                      )}
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "3px", gap: "8px" }}>
                         <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "15px", color: cert.color || "rgba(255,255,255,0.95)", fontWeight: 700, letterSpacing: "-0.01em" }}>
                           {cert.name}
                         </span>
+                        {cert.year && (
+                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "rgba(255,255,255,0.2)", flexShrink: 0 }}>
+                            {cert.year}
+                          </span>
+                        )}
                         {cert.status && (
                           <span style={{
                             fontSize: "10px", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase",
@@ -1195,14 +1181,9 @@ export default function Portfolio() {
                           }}>{cert.status}</span>
                         )}
                       </div>
-                      {(cert.description || cert.year) && (
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "8px", fontSize: "11px", lineHeight: 1.3 }}>
+                      {cert.description && (
+                        <div style={{ fontSize: "11px", lineHeight: 1.3 }}>
                           <span style={{ color: "rgba(255,255,255,0.55)" }}>{cert.description}</span>
-                          {cert.year && (
-                            <span style={{ fontFamily: "'JetBrains Mono', monospace", color: "rgba(255,255,255,0.2)", flexShrink: 0 }}>
-                              {cert.year}
-                            </span>
-                          )}
                         </div>
                       )}
                     </div>
@@ -1310,9 +1291,8 @@ export default function Portfolio() {
             </div>
           </div>
 
-          <div className="content-row">
+          <div className={`content-row${section === "about" ? " content-row-about" : ""}`}>
             <div className="article-wrap" key={`${section}-${selected}`}>
-              <Corners />
               {currentItem()}
             </div>
             {section !== "about" && <RightRail section={section} item={currentData} />}
