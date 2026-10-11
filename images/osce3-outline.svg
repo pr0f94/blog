@@ -1,5 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="400" height="399" viewBox="0 0 400 399" fill="none">
+<style>
+  .outline-pulse { stroke-dasharray: 48 108; animation: trace-pulse 4s linear infinite; }
+  @keyframes trace-pulse { from { stroke-dashoffset: 156; } to { stroke-dashoffset: 0; } }
+  @media (prefers-reduced-motion: reduce) { .outline-pulse { display: none; } }
+</style>
 <defs>
+<filter id="pulse-light" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+  <feMorphology in="SourceGraphic" operator="dilate" radius="0.5" result="thicker-highlight"/>
+  <feGaussianBlur in="thicker-highlight" stdDeviation="0.8"/>
+  <feMerge><feMergeNode/><feMergeNode in="thicker-highlight"/></feMerge>
+</filter>
 <filter id="neon" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="1.8"/></filter>
 <filter id="neon-halo" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="4"/></filter>
 <g id="outlines" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -52,4 +62,7 @@
 <use href="#outlines" filter="url(#neon-halo)" opacity="0.3"/>
 <use href="#outlines" filter="url(#neon)" opacity="0.6"/>
 <use href="#outlines"/>
+<g class="outline-pulse" opacity="0.9">
+  <use href="#outlines" filter="url(#pulse-light)"/>
+</g>
 </svg>
