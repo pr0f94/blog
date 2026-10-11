@@ -1173,10 +1173,7 @@ export default function Portfolio() {
                         {cert.status && (
                           <span style={{
                             fontSize: "10px", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase",
-                            padding: "2px 8px", borderRadius: "10px",
-                            background: `${cert.color || "#38bdf8"}14`, color: cert.color || "#38bdf8",
-                            border: `1px solid ${cert.color || "#38bdf8"}59`,
-                            boxShadow: `0 0 6px ${cert.color || "#38bdf8"}40`,
+                            color: cert.color || "#38bdf8",
                             flexShrink: 0,
                           }}>{cert.status}</span>
                         )}
