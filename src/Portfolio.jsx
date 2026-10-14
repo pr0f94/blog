@@ -67,6 +67,13 @@ const PENDING_CVES = [
     type: "Severity unconfirmed",
     summary: "A vulnerability identified and responsibly disclosed to the vendor. CVE assignment, severity, and technical details are pending publication.",
   },
+  ...Array.from({ length: 6 }, (_, index) => ({
+    id: `pending-disclosure-${String(index + 5).padStart(2, "0")}`,
+    status: "Pending disclosure",
+    product: "Confidential software product",
+    type: "Severity unconfirmed",
+    summary: "A vulnerability identified and responsibly disclosed to the vendor. CVE assignment, severity, and technical details are pending publication.",
+  })),
 ];
 
 const POSTS = Object.entries(postModules)
@@ -80,10 +87,10 @@ const TOOLS = Object.entries(toolModules)
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const SEV_META = {
-  CRITICAL: { bg: "rgba(229,72,77,0.12)",  text: "#ff8a8e" },
-  HIGH:     { bg: "rgba(247,107,21,0.12)", text: "#ffa466" },
-  MEDIUM:   { bg: "rgba(255,197,61,0.12)", text: "#ffd874" },
-  LOW:      { bg: "rgba(70,167,88,0.12)",  text: "#7ad08c" },
+  CRITICAL: { bg: "rgba(229,72,77,0.12)",  text: "#ff8a8e", indicator: "#ff365e" },
+  HIGH:     { bg: "rgba(247,107,21,0.12)", text: "#ffa466", indicator: "#ff702e" },
+  MEDIUM:   { bg: "rgba(255,197,61,0.12)", text: "#ffd874", indicator: "#f5df45" },
+  LOW:      { bg: "rgba(70,167,88,0.12)",  text: "#7ad08c", indicator: "#44cfa0" },
 };
 
 const SOCIAL = about.socials;
@@ -582,7 +589,14 @@ export default function Portfolio() {
   const [selected, setSelected] = useState(initialSelected);
   const [mobileShowList, setMobileShowList] = useState(false);
   const [cveQuery, setCveQuery] = useState("");
+  const [writingQuery, setWritingQuery] = useState("");
+  const [toolsQuery, setToolsQuery] = useState("");
+  const [pendingExpanded, setPendingExpanded] = useState(initialSelected.startsWith("pending-disclosure-"));
   const [railExpanded, setRailExpanded] = useState(false);
+
+  useEffect(() => {
+    if (selected.startsWith("pending-disclosure-")) setPendingExpanded(true);
+  }, [selected]);
 
   const normalizedCveQuery = cveQuery.trim().toLowerCase();
   const matchesCveQuery = (cve) => !normalizedCveQuery || [
@@ -592,6 +606,13 @@ export default function Portfolio() {
   const visiblePendingCves = PENDING_CVES.filter(matchesCveQuery);
   const visibleCves = CVES.filter(matchesCveQuery);
   const visibleCveCount = visiblePendingCves.length + visibleCves.length;
+  const matchesQuery = (query, fields) => fields.filter(Boolean).join(" ").toLowerCase().includes(query.trim().toLowerCase());
+  const visiblePosts = POSTS.filter(post => matchesQuery(writingQuery, [post.title, post.tag, post.summary, post.date]));
+  const visibleTools = TOOLS.filter(tool => matchesQuery(toolsQuery, [tool.name, tool.lang, tool.tagline, tool.desc, ...(tool.features || [])]));
+  const searchQuery = section === "cves" ? cveQuery : section === "writing" ? writingQuery : toolsQuery;
+  const setSearchQuery = section === "cves" ? setCveQuery : section === "writing" ? setWritingQuery : setToolsQuery;
+  const searchLabel = section === "cves" ? "CVEs" : section === "writing" ? "articles" : "tools";
+  const searchCount = section === "cves" ? visibleCveCount : section === "writing" ? visiblePosts.length : visibleTools.length;
 
   // State → URL hash
   useEffect(() => {
@@ -698,8 +719,37 @@ export default function Portfolio() {
         }
 
         /* Interactive states */
-        .list-item { transition: background 0.12s ease; }
-        .list-item:hover { background: rgba(255,255,255,0.05) !important; }
+        .cve-list-row, .list-entry {
+          display: block; width: calc(100% - 16px); margin: 3px 8px;
+          padding: 12px; border: 0; border-radius: 6px;
+          background: transparent; color: inherit; font: inherit;
+          text-align: left; cursor: pointer; transition: background .12s ease;
+        }
+        .cve-list-row:hover, .list-entry:hover { background: rgba(255,255,255,.025); }
+        .cve-list-row[aria-current="true"], .list-entry[aria-current="true"] { background: rgba(255,255,255,.065); }
+        .cve-row-heading { display: flex; align-items: center; gap: 10px; }
+        .cve-row-meta { display: flex; align-items: baseline; gap: 10px; margin-top: 5px; }
+        .cve-row-meta .cve-row-id { margin-top: 0; }
+        .cve-row-product, .list-entry-title { min-width: 0; font-size: 13px; font-weight: 500; line-height: 1.4; color: rgba(255,255,255,.72); }
+        .list-entry-title { display: block; }
+        .cve-list-row[aria-current="true"] .cve-row-product, .list-entry[aria-current="true"] .list-entry-title { color: rgba(255,255,255,.95); }
+        .list-entry-meta { display: flex; align-items: baseline; gap: 10px; margin-top: 5px; font: 10px/1.5 'JetBrains Mono', monospace; color: rgba(255,255,255,.38); }
+        .list-entry-trailing { margin-left: auto; flex-shrink: 0; }
+        .cve-row-id { display: block; margin-top: 5px; font: 10px/1.5 'JetBrains Mono', monospace; color: rgba(255,255,255,.38); }
+        .cve-severity-indicator {
+          flex-shrink: 0; margin-left: auto; align-self: center;
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 17px; height: 17px; border-radius: 50%;
+          font: 600 10px/1.5 'JetBrains Mono', monospace;
+        }
+        .pending-group { margin-top: 16px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,.06); }
+        .pending-toggle {
+          display: flex; align-items: center; gap: 8px; width: 100%; padding: 12px 20px;
+          background: none; border: 0; color: rgba(255,255,255,.45);
+          font: 11px/1.5 'JetBrains Mono', monospace; text-align: left; cursor: pointer;
+        }
+        .pending-toggle:hover { color: rgba(255,255,255,.75); }
+        .pending-count { margin-left: auto; color: rgba(255,255,255,.3); }
         .cert-row { display: block; background: transparent; }
         .cert-row:nth-child(even) > div { background: rgba(255,255,255,0.01); }
         .cert-row-osce3 > div { position: relative; overflow: hidden; isolation: isolate; }
@@ -980,7 +1030,7 @@ export default function Portfolio() {
                 >{mobileShowList ? "Hide" : "Show"}</button>
               </div>
 
-              {section === "cves" && (
+              {["cves", "writing", "tools"].includes(section) && (
                 <div style={{ marginTop: "12px" }}>
                   <div style={{ position: "relative" }}>
                     <svg aria-hidden="true" width="14" height="14" viewBox="0 0 18 18" fill="none"
@@ -990,11 +1040,11 @@ export default function Portfolio() {
                     </svg>
                     <input
                       type="search"
-                      value={cveQuery}
-                      onChange={(event) => setCveQuery(event.target.value)}
-                      placeholder="Search CVEs..."
-                      aria-label="Search CVEs"
-                      aria-describedby="cve-search-status"
+                      value={searchQuery}
+                      onChange={(event) => setSearchQuery(event.target.value)}
+                      placeholder={`Search ${searchLabel}...`}
+                      aria-label={`Search ${searchLabel}`}
+                      aria-describedby="list-search-status"
                       style={{
                         width: "100%", height: 34, padding: "0 10px 0 32px",
                         borderRadius: "7px", border: "1px solid rgba(255,255,255,0.1)",
@@ -1003,8 +1053,8 @@ export default function Portfolio() {
                       }}
                     />
                   </div>
-                  <div id="cve-search-status" aria-live="polite" style={{ marginTop: normalizedCveQuery ? "5px" : 0, fontSize: "10px", color: "rgba(255,255,255,0.45)" }}>
-                    {normalizedCveQuery ? `${visibleCveCount} ${visibleCveCount === 1 ? "match" : "matches"}` : ""}
+                  <div id="list-search-status" aria-live="polite" style={{ marginTop: searchQuery.trim() ? "5px" : 0, fontSize: "10px", color: "rgba(255,255,255,0.45)" }}>
+                    {searchQuery.trim() ? `${searchCount} ${searchCount === 1 ? "match" : "matches"}` : ""}
                   </div>
                 </div>
               )}
@@ -1017,61 +1067,54 @@ export default function Portfolio() {
                 const active = selected === cve.id;
                 return (
                   <li key={cve.id}>
-                    <button type="button" className="list-item"
+                    <button type="button" className="cve-list-row"
                       aria-current={active ? "true" : undefined}
                       onClick={() => selectItem(cve.id)}
-                      style={{
-                        width: "100%", textAlign: "left", border: "none", color: "inherit", font: "inherit",
-                        background: active ? "rgba(255,255,255,0.06)" : "transparent",
-                        padding: "13px 16px",
-                        borderBottom: "1px solid rgba(255,255,255,0.04)",
-                        borderLeft: active ? "2px solid #fff" : "2px solid transparent",
-                        cursor: "pointer", display: "block",
-                      }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px", marginBottom: "5px" }}>
-                        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: active ? "#fff" : "rgba(255,255,255,0.7)", fontWeight: 500 }}>
-                          {cve.id}
-                        </span>
-                        <Badge label={cve.severity} sev={cve.severity} />
+                      aria-label={`${cve.product}, ${cve.id}, ${cve.severity} severity`}>
+                      <div className="cve-row-heading">
+                        <span className="cve-row-product truncate">{cve.product}</span>
                       </div>
-                      <div className="truncate" style={{ fontSize: "13px", color: active ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.75)", fontWeight: 500, lineHeight: 1.3 }}>
-                        {cve.product}
+                      <div className="cve-row-meta">
+                        <span className="cve-row-id">{cve.id}</span>
+                        <span className="cve-severity-indicator" aria-hidden="true" title={`${cve.severity} severity`}
+                              style={{
+                                color: SEV_META[cve.severity]?.indicator || "#888",
+                                background: `${SEV_META[cve.severity]?.indicator || "#888888"}1a`,
+                              }}>{cve.severity?.charAt(0)}</span>
                       </div>
-                      <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.5)", marginTop: "4px" }}>{cve.type}</div>
                     </button>
                   </li>
                 );
               })}
 
-              {section === "cves" && visiblePendingCves.map(cve => {
+              {section === "cves" && visiblePendingCves.length > 0 && (
+                <li className="pending-group">
+                  <button type="button" className="pending-toggle"
+                          aria-expanded={pendingExpanded || Boolean(normalizedCveQuery)}
+                          aria-controls="pending-disclosures"
+                          onClick={() => setPendingExpanded(v => !v)}>
+                    <span aria-hidden="true">{pendingExpanded || normalizedCveQuery ? "▾" : "▸"}</span>
+                    Pending disclosures
+                    <span className="pending-count">{visiblePendingCves.length}</span>
+                  </button>
+                  <ul id="pending-disclosures" hidden={!pendingExpanded && !normalizedCveQuery}
+                      style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                    {visiblePendingCves.map(cve => {
                 const active = selected === cve.id;
                 return (
                   <li key={cve.id}>
-                    <button type="button" className="list-item"
+                    <button type="button" className="cve-list-row"
                       aria-current={active ? "true" : undefined}
-                      onClick={() => selectItem(cve.id)}
-                      style={{
-                        width: "100%", textAlign: "left", border: "none", color: "inherit", font: "inherit",
-                        background: active ? "rgba(255,255,255,0.06)" : "transparent",
-                        padding: "13px 16px",
-                        borderBottom: "1px solid rgba(255,255,255,0.04)",
-                        borderLeft: active ? "2px solid #fff" : "2px solid transparent",
-                        cursor: "pointer", display: "block",
-                      }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px", marginBottom: "5px" }}>
-                        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: active ? "#fff" : "rgba(255,255,255,0.7)", fontWeight: 500 }}>
-                          CVE pending
-                        </span>
-                        <Badge label="PENDING" />
-                      </div>
-                      <div className="truncate" style={{ fontSize: "13px", color: active ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.75)", fontWeight: 500, lineHeight: 1.3 }}>
-                        Confidential research
-                      </div>
-                      <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.5)", marginTop: "4px" }}>{cve.type}</div>
+                      onClick={() => selectItem(cve.id)}>
+                      <span className="cve-row-product">Disclosure {String(PENDING_CVES.indexOf(cve) + 1).padStart(2, "0")}</span>
+                      <span className="cve-row-id">Awaiting publication</span>
                     </button>
                   </li>
                 );
-              })}
+                    })}
+                  </ul>
+                </li>
+              )}
 
               {section === "cves" && visibleCveCount === 0 && (
                 <li style={{ padding: "28px 18px", textAlign: "center", color: "rgba(255,255,255,0.5)", fontSize: "12px", lineHeight: 1.6 }}>
@@ -1079,32 +1122,26 @@ export default function Portfolio() {
                 </li>
               )}
 
-              {section === "writing" && POSTS.map(post => {
+              {["writing", "tools"].includes(section) && searchCount === 0 && (
+                <li style={{ padding: "28px 18px", textAlign: "center", color: "rgba(255,255,255,0.5)", fontSize: "12px", lineHeight: 1.6 }}>
+                  No {searchLabel} match “{searchQuery.trim()}”.
+                </li>
+              )}
+
+              {section === "writing" && visiblePosts.map(post => {
                 const active = selected === post.id;
-                const tagColor = post.tag === "Methodology" ? "#7be0c8"
-                              : post.tag === "Writeup"     ? "#a5adf3"
-                                                           : "#7dcef5";
                 return (
                   <li key={post.id}>
-                    <button type="button" className="list-item"
+                    <button type="button" className="list-entry"
                       aria-current={active ? "true" : undefined}
-                      onClick={() => selectItem(post.id)}
-                      style={{
-                        width: "100%", textAlign: "left", border: "none", color: "inherit", font: "inherit",
-                        background: active ? "rgba(255,255,255,0.06)" : "transparent",
-                        padding: "14px 16px",
-                        borderBottom: "1px solid rgba(255,255,255,0.04)",
-                        borderLeft: active ? "2px solid #fff" : "2px solid transparent",
-                        cursor: "pointer", display: "block",
-                      }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "7px", gap: "8px" }}>
-                        <span style={{ fontSize: "10px", fontWeight: 700, color: tagColor, letterSpacing: "0.04em" }}>{post.tag.toUpperCase()}</span>
-                        <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.5)", flexShrink: 0 }}>{post.readTime}</span>
-                      </div>
-                      <div className="clamp-2" style={{ fontSize: "13px", color: active ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.78)", fontWeight: 500, lineHeight: 1.4, marginBottom: "5px" }}>
+                      onClick={() => selectItem(post.id)}>
+                      <div className="list-entry-title clamp-2">
                         {post.title}
                       </div>
-                      <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.5)" }}>{post.date}</div>
+                      <div className="list-entry-meta">
+                        <span>{post.tag}</span>
+                        <span className="list-entry-trailing">{post.readTime}</span>
+                      </div>
                     </button>
                   </li>
                 );
@@ -1152,27 +1189,17 @@ export default function Portfolio() {
                 );
               })}
 
-              {section === "tools" && TOOLS.map(tool => {
+              {section === "tools" && visibleTools.map(tool => {
                 const active = selected === tool.id;
-                const langColor = tool.lang === "Python" ? "#7dcef5" : "#7be0c8";
                 return (
                   <li key={tool.id}>
-                    <button type="button" className="list-item"
+                    <button type="button" className="list-entry"
                       aria-current={active ? "true" : undefined}
-                      onClick={() => selectItem(tool.id)}
-                      style={{
-                        width: "100%", textAlign: "left", border: "none", color: "inherit", font: "inherit",
-                        background: active ? "rgba(255,255,255,0.06)" : "transparent",
-                        padding: "14px 16px",
-                        borderBottom: "1px solid rgba(255,255,255,0.04)",
-                        borderLeft: active ? "2px solid #fff" : "2px solid transparent",
-                        cursor: "pointer", display: "block",
-                      }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px", gap: "8px" }}>
-                        <span className="truncate" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", color: active ? "#fff" : "rgba(255,255,255,0.82)", fontWeight: 600 }}>~/{tool.name}</span>
-                        <span style={{ fontSize: "10px", color: langColor, fontWeight: 700, flexShrink: 0 }}>{tool.lang}</span>
+                      onClick={() => selectItem(tool.id)}>
+                      <span className="list-entry-title truncate">{tool.name}</span>
+                      <div className="list-entry-meta">
+                        <span>{tool.lang}</span>
                       </div>
-                      <div className="clamp-2" style={{ fontSize: "12px", color: "rgba(255,255,255,0.62)", lineHeight: 1.4 }}>{tool.tagline}</div>
                     </button>
                   </li>
                 );
@@ -1182,23 +1209,14 @@ export default function Portfolio() {
                 const active = selected === offer.id;
                 return (
                   <li key={offer.id}>
-                    <button type="button" className="list-item"
+                    <button type="button" className="list-entry"
                       aria-current={active ? "true" : undefined}
-                      onClick={() => selectItem(offer.id)}
-                      style={{
-                        width: "100%", textAlign: "left", border: "none", color: "inherit", font: "inherit",
-                        background: active ? "rgba(255,255,255,0.06)" : "transparent",
-                        padding: "14px 16px",
-                        borderBottom: "1px solid rgba(255,255,255,0.04)",
-                        borderLeft: active ? "2px solid #fff" : "2px solid transparent",
-                        cursor: "pointer", display: "block",
-                      }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px", gap: "8px" }}>
-                        <span className="truncate" style={{ fontSize: "13px", color: active ? "#fff" : "rgba(255,255,255,0.82)", fontWeight: 700 }}>{offer.title}</span>
-                        <span style={{ fontSize: "10px", color: "#7be0c8", fontWeight: 700, flexShrink: 0 }}>{offer.duration}</span>
+                      onClick={() => selectItem(offer.id)}>
+                      <span className="list-entry-title truncate">{offer.title}</span>
+                      <div className="list-entry-meta">
+                        <span>{offer.duration}</span>
+                        <span className="list-entry-trailing">{offer.price}</span>
                       </div>
-                      <div className="clamp-2" style={{ fontSize: "12px", color: "rgba(255,255,255,0.62)", lineHeight: 1.4 }}>{offer.summary}</div>
-                      <div style={{ fontSize: "12px", color: "#7be0c8", fontWeight: 700, marginTop: "8px" }}>{offer.price}</div>
                     </button>
                   </li>
                 );
