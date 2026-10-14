@@ -486,7 +486,7 @@ const ConsultationDetail = ({ offer }) => (
     <section style={{ marginBottom: "28px" }}>
       <h2 style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "21px", fontWeight: 700, color: "#fff", margin: "0 0 8px", letterSpacing: "-0.01em", lineHeight: 1.25 }}>How it works</h2>
       <p style={{ fontSize: "14.5px", color: "rgba(255,255,255,0.72)", lineHeight: 1.85, margin: "8px 0" }}>
-        Choose a time through Topmate. Before the call, share the context relevant to your session: your resume, a target job description, a study plan, or the questions you want to discuss. For a discovery call, a brief introduction and your goals are enough.
+        Choose a time through Topmate. Before the call, share the context relevant to your session: your CV, a target job description, a study plan, or the questions you want to discuss. For a discovery call, a brief introduction and your goals are enough.
       </p>
       <p style={{ fontSize: "14.5px", color: "rgba(255,255,255,0.72)", lineHeight: 1.85, margin: "8px 0" }}>
         Booking and payment are handled through Topmate. This session is {offer.duration} and costs {offer.price === "Free" ? "nothing to book" : offer.price}.
@@ -683,13 +683,13 @@ export default function Portfolio() {
     { id: "cves",    label: "CVEs",
       Icon: () => <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M9 1.5L15.5 4.5V9C15.5 12.5 12.7 15.7 9 16.5C5.3 15.7 2.5 12.5 2.5 9V4.5L9 1.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M9 6v4M9 12h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
     },
-    { id: "writing", label: "Writing",
+    { id: "writing", label: "Articles",
       Icon: () => <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M2.5 3.5h4A2.5 2.5 0 0 1 9 6v9a2 2 0 0 0-2-2H2.5V3.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M15.5 3.5h-4A2.5 2.5 0 0 0 9 6v9a2 2 0 0 1 2-2h4.5V3.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/></svg>
     },
     { id: "tools",   label: "Tools",
       Icon: () => <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3 13.5L4.5 9 12.5 1 17 5.5 9 13.5 4.5 15z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M11 3l4 4M3 13.5L4.5 15" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
     },
-    { id: "consulting", label: "Consulting",
+    { id: "consulting", label: "Sessions",
       Icon: () => <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3 4.5h12v7H8l-3.5 3v-3H3v-7Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/><path d="M6 7h6M6 9.5h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
     },
   ];
@@ -995,7 +995,7 @@ export default function Portfolio() {
               section === "cves" ? "CVE list"
               : section === "writing" ? "Article list"
               : section === "tools" ? "Tools list"
-              : section === "consulting" ? "Consultation list"
+              : section === "consulting" ? "Session list"
               : "Certifications list"
             }
           >
@@ -1006,13 +1006,10 @@ export default function Portfolio() {
             }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: "11px", fontWeight: 600, color: "rgba(255,255,255,0.5)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "2px" }}>
-                    {section === "cves" ? "Vulnerabilities" : section === "writing" ? "Articles" : section === "tools" ? "Open Source" : section === "consulting" ? "Sessions" : "Certifications"}
-                  </div>
                   <div style={{ fontSize: "18px", fontWeight: 700, color: "#fff" }}>
                     {section === "cves" ? CVES.length + PENDING_CVES.length : section === "writing" ? POSTS.length : section === "tools" ? TOOLS.length : section === "consulting" ? CONSULTATION_OFFERS.length : (about.certifications?.length || 0)}{" "}
                     <span style={{ color: "rgba(255,255,255,0.5)", fontWeight: 400, fontSize: "14px" }}>
-                      {section === "cves" ? "CVEs" : section === "writing" ? "posts" : section === "tools" ? "tools" : section === "consulting" ? "options" : "certs"}
+                      {section === "cves" ? "CVEs" : section === "writing" ? "articles" : section === "tools" ? "tools" : section === "consulting" ? "sessions" : "certs"}
                     </span>
                   </div>
                 </div>
@@ -1237,7 +1234,7 @@ export default function Portfolio() {
             <nav aria-label="Breadcrumb" style={{ display: "flex", alignItems: "center", gap: "6px", minWidth: 0, flex: 1 }}>
               <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>pr0f</span>
               <span aria-hidden="true" style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)" }}>/</span>
-              <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)" }}>{section}</span>
+              <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)" }}>{section === "consulting" ? "sessions" : section === "writing" ? "articles" : section}</span>
               {section !== "about" && (
                 <>
                   <span aria-hidden="true" style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)" }}>/</span>
