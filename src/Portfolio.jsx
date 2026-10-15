@@ -597,12 +597,12 @@ export default function Portfolio() {
   const [pendingExpanded, setPendingExpanded] = useState(initialSelected.startsWith("pending-disclosure-"));
   const [railExpanded, setRailExpanded] = useState(false);
   const [theme, setTheme] = useState(() => {
-    try { return localStorage.getItem("blog-color-theme") === "original" ? "original" : "amber"; }
-    catch { return "amber"; }
+    try { return localStorage.getItem("blog-color-theme") === "amber" ? "amber" : "original"; }
+    catch { return "original"; }
   });
 
   useEffect(() => {
-    if (theme !== "original" && theme !== "amber") { setTheme("amber"); return; }
+    if (theme !== "original" && theme !== "amber") { setTheme("original"); return; }
     document.documentElement.dataset.theme = theme;
     try { localStorage.setItem("blog-color-theme", theme); } catch { /* Storage may be unavailable. */ }
   }, [theme]);
