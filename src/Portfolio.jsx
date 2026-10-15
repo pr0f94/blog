@@ -8,6 +8,7 @@ import go from "highlight.js/lib/languages/go";
 import "highlight.js/styles/github-dark.css";
 import AboutPanel from "./components/AboutPanel.jsx";
 import { frontmatter as about } from "./content/about.mdx";
+import "./themes.css";
 
 hljs.registerLanguage("bash", bash);
 hljs.registerLanguage("sh", bash);
@@ -158,9 +159,9 @@ const CONSULTATION_OFFERS = [
 // ─── ATOMS ───────────────────────────────────────────────────────────────────
 
 const Badge = ({ label, sev }) => {
-  const m = SEV_META[sev] || { bg: "#444", text: "#fff" };
+  const m = SEV_META[sev] || { bg: "#444", text: "var(--text)" };
   return (
-    <span style={{
+    <span data-severity={sev} className="severity-badge" style={{
       display: "inline-block", padding: "2px 8px", borderRadius: "4px",
       fontSize: "10px", fontWeight: 700, letterSpacing: "0.06em",
       background: m.bg, color: m.text, textTransform: "uppercase",
@@ -171,8 +172,8 @@ const Badge = ({ label, sev }) => {
 const Tag = ({ label }) => (
   <span style={{
     display: "inline-block", padding: "2px 8px", borderRadius: "4px",
-    fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.07)",
-    color: "rgba(255,255,255,0.65)", border: "1px solid rgba(255,255,255,0.1)",
+    fontSize: "11px", fontWeight: 600, background: "rgba(var(--text-rgb),0.07)",
+    color: "rgba(var(--text-rgb),0.65)", border: "1px solid rgba(var(--text-rgb),0.1)",
   }}>{label}</span>
 );
 
@@ -195,15 +196,15 @@ function CodeBlock({ lang, code }) {
   }
 
   return (
-    <div style={{
-      background: "#0d0d0d", borderRadius: "8px",
-      border: "1px solid rgba(255,255,255,0.08)",
+    <div className="code-block" style={{
+      background: "var(--code-surface)", borderRadius: "8px",
+      border: "1px solid rgba(var(--text-rgb),0.08)",
       padding: "14px 16px", margin: "18px 0", overflowX: "auto",
       position: "relative",
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px", gap: "12px" }}>
         <span style={{
-          fontSize: "11px", color: "rgba(255,255,255,0.45)",
+          fontSize: "11px", color: "rgba(var(--text-rgb),0.45)",
           letterSpacing: "0.05em", textTransform: "uppercase",
         }}>{lang || "code"}</span>
         <button
@@ -213,8 +214,8 @@ function CodeBlock({ lang, code }) {
           className="copy-btn"
           style={{
             background: "transparent",
-            border: "1px solid rgba(255,255,255,0.12)",
-            color: copied ? "#a8ff78" : "rgba(255,255,255,0.6)",
+            border: "1px solid rgba(var(--text-rgb),0.12)",
+            color: copied ? "var(--code-accent)" : "rgba(var(--text-rgb),0.6)",
             fontSize: "11px", padding: "3px 10px", borderRadius: "4px",
             cursor: "pointer", fontFamily: "'JetBrains Mono', monospace",
             letterSpacing: "0.04em",
@@ -227,7 +228,7 @@ function CodeBlock({ lang, code }) {
       }}>
         {highlightedHTML
           ? <code className="hljs" dangerouslySetInnerHTML={{ __html: highlightedHTML }} />
-          : <code style={{ color: "#a8ff78" }}>{code}</code>}
+          : <code style={{ color: "var(--code-accent)" }}>{code}</code>}
       </pre>
     </div>
   );
@@ -250,39 +251,39 @@ const mdxComponents = {
   code: (props) => (
     <code style={{
       fontFamily: "'JetBrains Mono', monospace", fontSize: "12px",
-      background: "rgba(255,255,255,0.08)", padding: "1px 6px",
-      borderRadius: "3px", color: "#a8ff78",
+      background: "rgba(var(--text-rgb),0.08)", padding: "1px 6px",
+      borderRadius: "3px", color: "var(--code-accent)",
     }} {...props} />
   ),
   h2: ({ id, children }) => (
     <h2 id={id} className="md-h2" style={{
       fontFamily: "'JetBrains Mono', monospace", fontSize: "21px", fontWeight: 700,
-      color: "#fff", margin: "36px 0 8px", letterSpacing: "-0.01em",
+      color: "var(--text)", margin: "36px 0 8px", letterSpacing: "-0.01em",
       lineHeight: 1.25, scrollMarginTop: "72px",
     }}>{children}</h2>
   ),
   h3: ({ id, children }) => (
     <h3 id={id} style={{
-      fontSize: "14px", fontWeight: 700, color: "rgba(255,255,255,0.9)",
+      fontSize: "14px", fontWeight: 700, color: "rgba(var(--text-rgb),0.9)",
       margin: "14px 0 6px", textTransform: "uppercase", letterSpacing: "0.06em",
     }}>{children}</h3>
   ),
   p: (props) => (
-    <p style={{ color: "rgba(255,255,255,0.72)", fontSize: "14.5px", lineHeight: 1.85, margin: "8px 0" }} {...props} />
+    <p style={{ color: "rgba(var(--text-rgb),0.72)", fontSize: "14.5px", lineHeight: 1.85, margin: "8px 0" }} {...props} />
   ),
   ul: (props) => <ul style={{ margin: "8px 0", paddingLeft: "22px" }} {...props} />,
   ol: (props) => <ol style={{ margin: "8px 0", paddingLeft: "22px" }} {...props} />,
   li: (props) => (
-    <li style={{ color: "rgba(255,255,255,0.72)", fontSize: "14.5px", lineHeight: 1.85, marginBottom: "2px" }} {...props} />
+    <li style={{ color: "rgba(var(--text-rgb),0.72)", fontSize: "14.5px", lineHeight: 1.85, marginBottom: "2px" }} {...props} />
   ),
-  strong: (props) => <strong style={{ color: "rgba(255,255,255,0.92)" }} {...props} />,
-  em: (props) => <em style={{ color: "rgba(255,255,255,0.85)" }} {...props} />,
+  strong: (props) => <strong style={{ color: "rgba(var(--text-rgb),0.92)" }} {...props} />,
+  em: (props) => <em style={{ color: "rgba(var(--text-rgb),0.85)" }} {...props} />,
   a: (props) => (
     <a target="_blank" rel="noopener noreferrer"
-       style={{ color: "#7dcef5", textDecoration: "underline", textUnderlineOffset: "2px" }} {...props} />
+       style={{ color: "var(--link)", textDecoration: "underline", textUnderlineOffset: "2px" }} {...props} />
   ),
   img: (props) => (
-    <img style={{ maxWidth: "100%", height: "auto", display: "block", margin: "18px 0", borderRadius: "4px", border: "1px solid rgba(255,255,255,0.08)" }} {...props} />
+    <img style={{ maxWidth: "100%", height: "auto", display: "block", margin: "18px 0", borderRadius: "4px", border: "1px solid rgba(var(--text-rgb),0.08)" }} {...props} />
   ),
   hr: () => null,
   table: (props) => (
@@ -292,21 +293,21 @@ const mdxComponents = {
   ),
   th: (props) => (
     <th scope="col" style={{
-      padding: "8px 12px", background: "rgba(255,255,255,0.06)",
-      color: "rgba(255,255,255,0.88)", fontWeight: 700, textAlign: "left",
-      borderBottom: "1px solid rgba(255,255,255,0.1)",
+      padding: "8px 12px", background: "rgba(var(--text-rgb),0.06)",
+      color: "rgba(var(--text-rgb),0.88)", fontWeight: 700, textAlign: "left",
+      borderBottom: "1px solid rgba(var(--text-rgb),0.1)",
     }} {...props} />
   ),
   td: (props) => (
     <td style={{
-      padding: "8px 12px", color: "rgba(255,255,255,0.72)",
-      borderBottom: "1px solid rgba(255,255,255,0.06)",
+      padding: "8px 12px", color: "rgba(var(--text-rgb),0.72)",
+      borderBottom: "1px solid rgba(var(--text-rgb),0.06)",
     }} {...props} />
   ),
   blockquote: (props) => (
     <blockquote style={{
-      borderLeft: "3px solid rgba(255,255,255,0.15)", paddingLeft: "16px",
-      margin: "12px 0", color: "rgba(255,255,255,0.7)", fontStyle: "italic",
+      borderLeft: "3px solid rgba(var(--text-rgb),0.15)", paddingLeft: "16px",
+      margin: "12px 0", color: "rgba(var(--text-rgb),0.7)", fontStyle: "italic",
     }} {...props} />
   ),
 };
@@ -321,23 +322,23 @@ const CVEDetail = ({ cve }) => (
     <header className={cve.severity === "CRITICAL" ? "cve-critical-header" : undefined} style={{ marginBottom: "24px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px", flexWrap: "wrap" }}>
         <Badge label={cve.severity} sev={cve.severity} />
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "rgba(255,255,255,0.6)" }}>CVSS {cve.cvss}</span>
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "rgba(255,255,255,0.5)" }}>{cve.type}</span>
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "rgba(var(--text-rgb),0.6)" }}>CVSS {cve.cvss}</span>
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "rgba(var(--text-rgb),0.5)" }}>{cve.type}</span>
       </div>
-      <h1 id="cve-title" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "28px", fontWeight: 700, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.25, marginBottom: "6px", wordBreak: "break-word" }}>
+      <h1 id="cve-title" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "28px", fontWeight: 700, color: "var(--text)", letterSpacing: "-0.02em", lineHeight: 1.25, marginBottom: "6px", wordBreak: "break-word" }}>
         {cve.id}
       </h1>
-      <div style={{ fontSize: "16px", fontWeight: 600, color: "rgba(255,255,255,0.78)", marginBottom: "16px" }}>
-        {cve.product} <span style={{ color: "rgba(255,255,255,0.45)", fontSize: "13px" }}>v{cve.version}</span>
+      <div style={{ fontSize: "16px", fontWeight: 600, color: "rgba(var(--text-rgb),0.78)", marginBottom: "16px" }}>
+        {cve.product} <span style={{ color: "rgba(var(--text-rgb),0.45)", fontSize: "13px" }}>v{cve.version}</span>
       </div>
-      <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.72)", lineHeight: 1.75, borderLeft: "3px solid rgba(255,255,255,0.15)", paddingLeft: "16px" }}>
+      <p style={{ fontSize: "15px", color: "rgba(var(--text-rgb),0.72)", lineHeight: 1.75, borderLeft: "3px solid rgba(var(--text-rgb),0.15)", paddingLeft: "16px" }}>
         {cve.summary}
       </p>
       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "16px" }}>
         {cve.tags.map(t => <Tag key={t} label={t} />)}
       </div>
     </header>
-    <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "4px" }}>
+    <div style={{ borderTop: "1px solid rgba(var(--text-rgb),0.07)", paddingTop: "4px" }}>
       <MdxBody Content={cve.Content} />
     </div>
   </article>
@@ -348,23 +349,23 @@ const PendingCVEDetail = ({ cve }) => (
     <header style={{ marginBottom: "28px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px", flexWrap: "wrap" }}>
         <Badge label={cve.status} />
-        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "rgba(255,255,255,0.55)" }}>{cve.type}</span>
+        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "rgba(var(--text-rgb),0.55)" }}>{cve.type}</span>
       </div>
-      <h1 id="pending-cve-title" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "28px", fontWeight: 700, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.25, marginBottom: "8px" }}>
+      <h1 id="pending-cve-title" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "28px", fontWeight: 700, color: "var(--text)", letterSpacing: "-0.02em", lineHeight: 1.25, marginBottom: "8px" }}>
         Vulnerability research in progress
       </h1>
-      <div style={{ fontSize: "16px", fontWeight: 600, color: "rgba(255,255,255,0.78)", marginBottom: "16px" }}>
+      <div style={{ fontSize: "16px", fontWeight: 600, color: "rgba(var(--text-rgb),0.78)", marginBottom: "16px" }}>
         {cve.product}
       </div>
-      <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.72)", lineHeight: 1.75, borderLeft: "3px solid rgba(255,255,255,0.15)", paddingLeft: "16px" }}>
+      <p style={{ fontSize: "15px", color: "rgba(var(--text-rgb),0.72)", lineHeight: 1.75, borderLeft: "3px solid rgba(var(--text-rgb),0.15)", paddingLeft: "16px" }}>
         {cve.summary}
       </p>
     </header>
-    <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "20px" }}>
-      <p style={{ color: "rgba(255,255,255,0.72)", fontSize: "14.5px", lineHeight: 1.85, margin: "8px 0" }}>
+    <div style={{ borderTop: "1px solid rgba(var(--text-rgb),0.07)", paddingTop: "20px" }}>
+      <p style={{ color: "rgba(var(--text-rgb),0.72)", fontSize: "14.5px", lineHeight: 1.85, margin: "8px 0" }}>
         I am withholding the vendor, product, vulnerability class, severity, and proof-of-concept details until coordinated disclosure is complete.
       </p>
-      <p style={{ color: "rgba(255,255,255,0.72)", fontSize: "14.5px", lineHeight: 1.85, margin: "8px 0" }}>
+      <p style={{ color: "rgba(var(--text-rgb),0.72)", fontSize: "14.5px", lineHeight: 1.85, margin: "8px 0" }}>
         This entry is included to distinguish ongoing independent research from published CVE records. The public advisory and CVE identifier will be added here when disclosure permits.
       </p>
     </div>
@@ -377,25 +378,25 @@ const PostDetail = ({ post }) => (
       <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "14px", flexWrap: "wrap" }}>
         <span style={{
           padding: "3px 10px", borderRadius: "4px", fontSize: "11px", fontWeight: 700,
-          background: post.tag === "Methodology" ? "rgba(0,201,167,0.10)"
+          background: post.tag === "Methodology" ? "var(--teal-tint)"
                     : post.tag === "Writeup"     ? "rgba(129,140,248,0.10)"
-                                                 : "rgba(56,189,248,0.10)",
-          color:      post.tag === "Methodology" ? "#7be0c8"
-                    : post.tag === "Writeup"     ? "#a5adf3"
-                                                 : "#7dcef5",
+                                                 : "var(--blue-tint)",
+          color:      post.tag === "Methodology" ? "var(--accent)"
+                    : post.tag === "Writeup"     ? "var(--article-accent)"
+                                                 : "var(--link)",
           letterSpacing: "0.04em",
         }}>{post.tag}</span>
-        <time style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)" }}>{post.date}</time>
-        <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.45)" }}>· {post.readTime} read</span>
+        <time style={{ fontSize: "12px", color: "rgba(var(--text-rgb),0.55)" }}>{post.date}</time>
+        <span style={{ fontSize: "12px", color: "rgba(var(--text-rgb),0.45)" }}>· {post.readTime} read</span>
       </div>
-      <h1 id="post-title" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "28px", fontWeight: 700, color: "#fff", lineHeight: 1.25, letterSpacing: "-0.02em", marginBottom: "16px" }}>
+      <h1 id="post-title" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "28px", fontWeight: 700, color: "var(--text)", lineHeight: 1.25, letterSpacing: "-0.02em", marginBottom: "16px" }}>
         {post.title}
       </h1>
-      <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.72)", lineHeight: 1.75, borderLeft: "3px solid rgba(255,255,255,0.12)", paddingLeft: "16px" }}>
+      <p style={{ fontSize: "15px", color: "rgba(var(--text-rgb),0.72)", lineHeight: 1.75, borderLeft: "3px solid rgba(var(--text-rgb),0.12)", paddingLeft: "16px" }}>
         {post.summary}
       </p>
     </header>
-    <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "4px" }}>
+    <div style={{ borderTop: "1px solid rgba(var(--text-rgb),0.07)", paddingTop: "4px" }}>
       <MdxBody Content={post.Content} />
     </div>
   </article>
@@ -407,31 +408,31 @@ const ToolDetail = ({ tool }) => (
       <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px", flexWrap: "wrap" }}>
         <span style={{
           padding: "3px 10px", borderRadius: "4px", fontSize: "11px", fontWeight: 700,
-          background: tool.lang === "Python" ? "rgba(56,189,248,0.10)" : "rgba(0,201,167,0.10)",
-          color:      tool.lang === "Python" ? "#7dcef5"               : "#7be0c8",
+          background: tool.lang === "Python" ? "var(--blue-tint)" : "var(--teal-tint)",
+          color:      tool.lang === "Python" ? "var(--link)"               : "var(--accent)",
           letterSpacing: "0.04em",
         }}>{tool.lang}</span>
       </div>
-      <h1 id="tool-title" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "28px", fontWeight: 700, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.25, marginBottom: "8px", wordBreak: "break-word" }}>
+      <h1 id="tool-title" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "28px", fontWeight: 700, color: "var(--text)", letterSpacing: "-0.02em", lineHeight: 1.25, marginBottom: "8px", wordBreak: "break-word" }}>
         ~/{tool.name}
       </h1>
-      <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.72)", lineHeight: 1.75, marginBottom: "16px" }}>{tool.desc}</p>
+      <p style={{ fontSize: "15px", color: "rgba(var(--text-rgb),0.72)", lineHeight: 1.75, marginBottom: "16px" }}>{tool.desc}</p>
 
       {(tool.links?.github || tool.links?.pypi) && (
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
           {tool.links.github && (
             <a href={tool.links.github} target="_blank" rel="noopener noreferrer" className="ext-link"
                style={{
-                 fontSize: "12px", color: "rgba(255,255,255,0.78)", textDecoration: "none",
-                 padding: "6px 12px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.12)",
+                 fontSize: "12px", color: "rgba(var(--text-rgb),0.78)", textDecoration: "none",
+                 padding: "6px 12px", borderRadius: "6px", border: "1px solid rgba(var(--text-rgb),0.12)",
                  fontFamily: "'JetBrains Mono', monospace",
                }}>GitHub ↗</a>
           )}
           {tool.links.pypi && (
             <a href={tool.links.pypi} target="_blank" rel="noopener noreferrer" className="ext-link"
                style={{
-                 fontSize: "12px", color: "rgba(255,255,255,0.78)", textDecoration: "none",
-                 padding: "6px 12px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.12)",
+                 fontSize: "12px", color: "rgba(var(--text-rgb),0.78)", textDecoration: "none",
+                 padding: "6px 12px", borderRadius: "6px", border: "1px solid rgba(var(--text-rgb),0.12)",
                  fontFamily: "'JetBrains Mono', monospace",
                }}>PyPI ↗</a>
           )}
@@ -442,11 +443,11 @@ const ToolDetail = ({ tool }) => (
     <CodeBlock lang="install" code={tool.install} />
     <CodeBlock lang="usage"   code={tool.usage} />
 
-    <h2 style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "21px", fontWeight: 700, color: "#fff", margin: "36px 0 8px", letterSpacing: "-0.01em", lineHeight: 1.25 }}>Features</h2>
+    <h2 style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "21px", fontWeight: 700, color: "var(--text)", margin: "36px 0 8px", letterSpacing: "-0.01em", lineHeight: 1.25 }}>Features</h2>
     <ul style={{ paddingLeft: 0, listStyle: "none", margin: 0 }}>
       {tool.features.map((f, i) => (
-        <li key={i} style={{ display: "flex", gap: "10px", alignItems: "flex-start", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.05)", fontSize: "14px", color: "rgba(255,255,255,0.72)" }}>
-          <span aria-hidden="true" style={{ color: "#a8ff78", fontSize: "12px", marginTop: "2px" }}>✓</span> {f}
+        <li key={i} style={{ display: "flex", gap: "10px", alignItems: "flex-start", padding: "8px 0", borderBottom: "1px solid rgba(var(--text-rgb),0.05)", fontSize: "14px", color: "rgba(var(--text-rgb),0.72)" }}>
+          <span aria-hidden="true" style={{ color: "var(--code-accent)", fontSize: "12px", marginTop: "2px" }}>✓</span> {f}
         </li>
       ))}
     </ul>
@@ -460,37 +461,37 @@ const ConsultationDetail = ({ offer }) => (
       <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "14px", flexWrap: "wrap" }}>
         <span style={{
           padding: "3px 10px", borderRadius: "4px", fontSize: "11px", fontWeight: 700,
-          background: "rgba(0,201,167,0.10)", color: "#7be0c8", letterSpacing: "0.04em",
+          background: "var(--teal-tint)", color: "var(--accent)", letterSpacing: "0.04em",
         }}>1:1 Video Call</span>
-        <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)" }}>{offer.duration}</span>
-        <span style={{ fontSize: "12px", color: "#7be0c8", fontWeight: 700 }}>{offer.price}</span>
+        <span style={{ fontSize: "12px", color: "rgba(var(--text-rgb),0.55)" }}>{offer.duration}</span>
+        <span style={{ fontSize: "12px", color: "var(--accent)", fontWeight: 700 }}>{offer.price}</span>
       </div>
-      <h1 id="consulting-title" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "28px", fontWeight: 700, color: "#fff", lineHeight: 1.25, letterSpacing: "-0.02em", marginBottom: "16px" }}>
+      <h1 id="consulting-title" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "28px", fontWeight: 700, color: "var(--text)", lineHeight: 1.25, letterSpacing: "-0.02em", marginBottom: "16px" }}>
         {offer.title}
       </h1>
-      <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.72)", lineHeight: 1.75, borderLeft: "3px solid rgba(255,255,255,0.12)", paddingLeft: "16px" }}>
+      <p style={{ fontSize: "15px", color: "rgba(var(--text-rgb),0.72)", lineHeight: 1.75, borderLeft: "3px solid rgba(var(--text-rgb),0.12)", paddingLeft: "16px" }}>
         I bring a decade of experience across software engineering and security, including working at FAANG and other tech companies. These sessions offer practical guidance on AppSec, security careers, certifications, and interviews, based on where you are and what you want to do next.
       </p>
     </header>
 
     <section style={{ marginBottom: "28px" }}>
-      <h2 style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "21px", fontWeight: 700, color: "#fff", margin: "0 0 8px", letterSpacing: "-0.01em", lineHeight: 1.25 }}>What this is for</h2>
-      <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.72)", lineHeight: 1.75, marginBottom: "12px" }}>{offer.summary}</p>
+      <h2 style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "21px", fontWeight: 700, color: "var(--text)", margin: "0 0 8px", letterSpacing: "-0.01em", lineHeight: 1.25 }}>What this is for</h2>
+      <p style={{ fontSize: "15px", color: "rgba(var(--text-rgb),0.72)", lineHeight: 1.75, marginBottom: "12px" }}>{offer.summary}</p>
       <ul style={{ paddingLeft: 0, listStyle: "none", margin: 0 }}>
         {offer.bullets.map((item) => (
-          <li key={item} style={{ display: "flex", gap: "10px", alignItems: "flex-start", padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.05)", fontSize: "14px", color: "rgba(255,255,255,0.72)", lineHeight: 1.55 }}>
-            <span aria-hidden="true" style={{ color: "#a8ff78", fontSize: "12px", marginTop: "2px" }}>✓</span> {item}
+          <li key={item} style={{ display: "flex", gap: "10px", alignItems: "flex-start", padding: "8px 0", borderBottom: "1px solid rgba(var(--text-rgb),0.05)", fontSize: "14px", color: "rgba(var(--text-rgb),0.72)", lineHeight: 1.55 }}>
+            <span aria-hidden="true" style={{ color: "var(--code-accent)", fontSize: "12px", marginTop: "2px" }}>✓</span> {item}
           </li>
         ))}
       </ul>
     </section>
 
     <section style={{ marginBottom: "28px" }}>
-      <h2 style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "21px", fontWeight: 700, color: "#fff", margin: "0 0 8px", letterSpacing: "-0.01em", lineHeight: 1.25 }}>How it works</h2>
-      <p style={{ fontSize: "14.5px", color: "rgba(255,255,255,0.72)", lineHeight: 1.85, margin: "8px 0" }}>
+      <h2 style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "21px", fontWeight: 700, color: "var(--text)", margin: "0 0 8px", letterSpacing: "-0.01em", lineHeight: 1.25 }}>How it works</h2>
+      <p style={{ fontSize: "14.5px", color: "rgba(var(--text-rgb),0.72)", lineHeight: 1.85, margin: "8px 0" }}>
         Choose a time through Topmate. Before the call, share the context relevant to your session: your CV, a target job description, a study plan, or the questions you want to discuss. For a discovery call, a brief introduction and your goals are enough.
       </p>
-      <p style={{ fontSize: "14.5px", color: "rgba(255,255,255,0.72)", lineHeight: 1.85, margin: "8px 0" }}>
+      <p style={{ fontSize: "14.5px", color: "rgba(var(--text-rgb),0.72)", lineHeight: 1.85, margin: "8px 0" }}>
         Booking and payment are handled through Topmate. This session is {offer.duration} and costs {offer.price === "Free" ? "nothing to book" : offer.price}.
       </p>
     </section>
@@ -498,8 +499,8 @@ const ConsultationDetail = ({ offer }) => (
     <a href={offer.bookingUrl} target="_blank" rel="noopener noreferrer" className="ext-link"
        style={{
          display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "13px",
-         color: "rgba(255,255,255,0.9)", textDecoration: "none", padding: "9px 14px",
-         borderRadius: "6px", border: "1px solid rgba(255,255,255,0.16)",
+         color: "rgba(var(--text-rgb),0.9)", textDecoration: "none", padding: "9px 14px",
+         borderRadius: "6px", border: "1px solid rgba(var(--text-rgb),0.16)",
          fontFamily: "'JetBrains Mono', monospace",
        }}>Book {offer.title} on Topmate ↗</a>
   </article>
@@ -595,6 +596,16 @@ export default function Portfolio() {
   const [toolsQuery, setToolsQuery] = useState("");
   const [pendingExpanded, setPendingExpanded] = useState(initialSelected.startsWith("pending-disclosure-"));
   const [railExpanded, setRailExpanded] = useState(false);
+  const [theme, setTheme] = useState(() => {
+    try { return localStorage.getItem("blog-color-theme") === "original" ? "original" : "amber"; }
+    catch { return "amber"; }
+  });
+
+  useEffect(() => {
+    if (theme !== "original" && theme !== "amber") { setTheme("amber"); return; }
+    document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem("blog-color-theme", theme); } catch { /* Storage may be unavailable. */ }
+  }, [theme]);
 
   useEffect(() => {
     if (selected.startsWith("pending-disclosure-")) setPendingExpanded(true);
@@ -702,12 +713,12 @@ export default function Portfolio() {
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { height: 100%; }
-        body { background: #111; font-family: 'Outfit', sans-serif; color: #fff; }
+        body { background: var(--page); font-family: 'Outfit', sans-serif; color: var(--text); }
 
         /* Skip link for keyboard / screen-reader users */
         .skip-link {
           position: absolute; left: -9999px; top: 8px;
-          background: #fff; color: #111; padding: 8px 14px; border-radius: 6px;
+          background: var(--text); color: var(--page); padding: 8px 14px; border-radius: 6px;
           font-size: 13px; font-weight: 600; z-index: 100;
         }
         .skip-link:focus { left: 8px; }
@@ -715,7 +726,7 @@ export default function Portfolio() {
         /* Visible focus ring without disturbing layout */
         :focus { outline: none; }
         :focus-visible {
-          outline: 2px solid #fff;
+          outline: 2px solid var(--text);
           outline-offset: 2px;
           border-radius: 4px;
         }
@@ -727,8 +738,8 @@ export default function Portfolio() {
           background: transparent; color: inherit; font: inherit;
           text-align: left; cursor: pointer; transition: background .12s ease;
         }
-        .cve-list-row:hover, .list-entry:hover { background: rgba(255,255,255,.025); }
-        .cve-list-row[aria-current="true"], .list-entry[aria-current="true"] { background: rgba(255,255,255,.065); }
+        .cve-list-row:hover, .list-entry:hover { background: rgba(var(--text-rgb),.025); }
+        .cve-list-row[aria-current="true"], .list-entry[aria-current="true"] { background: rgba(var(--text-rgb),.065); }
         /* Critical CVE design: crimson row + edge glow, header gradient,
            and flickering severity indicator with rising embers.
            Keep other severities neutral; respect reduced-motion below. */
@@ -778,32 +789,32 @@ export default function Portfolio() {
         .cve-row-heading { display: flex; align-items: center; gap: 10px; }
         .cve-row-meta { display: flex; align-items: baseline; gap: 10px; margin-top: 5px; }
         .cve-row-meta .cve-row-id { margin-top: 0; }
-        .cve-row-product, .list-entry-title { min-width: 0; font-size: 13px; font-weight: 500; line-height: 1.4; color: rgba(255,255,255,.72); }
+        .cve-row-product, .list-entry-title { min-width: 0; font-size: 13px; font-weight: 500; line-height: 1.4; color: rgba(var(--text-rgb),.72); }
         .list-entry-title { display: block; }
-        .cve-list-row[aria-current="true"] .cve-row-product, .list-entry[aria-current="true"] .list-entry-title { color: rgba(255,255,255,.95); }
-        .list-entry-meta { display: flex; align-items: baseline; gap: 10px; margin-top: 5px; font: 10px/1.5 'JetBrains Mono', monospace; color: rgba(255,255,255,.38); }
+        .cve-list-row[aria-current="true"] .cve-row-product, .list-entry[aria-current="true"] .list-entry-title { color: rgba(var(--text-rgb),.95); }
+        .list-entry-meta { display: flex; align-items: baseline; gap: 10px; margin-top: 5px; font: 10px/1.5 'JetBrains Mono', monospace; color: rgba(var(--text-rgb),.38); }
         .list-entry-trailing { margin-left: auto; flex-shrink: 0; }
-        .cve-row-id { display: block; margin-top: 5px; font: 10px/1.5 'JetBrains Mono', monospace; color: rgba(255,255,255,.38); }
+        .cve-row-id { display: block; margin-top: 5px; font: 10px/1.5 'JetBrains Mono', monospace; color: rgba(var(--text-rgb),.38); }
         .cve-severity-indicator {
           flex-shrink: 0; margin-left: auto; align-self: center;
           display: inline-flex; align-items: center; justify-content: center;
           width: 17px; height: 17px; border-radius: 50%;
           font: 600 10px/1.5 'JetBrains Mono', monospace;
         }
-        .pending-group { margin-top: 16px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,.06); }
+        .pending-group { margin-top: 16px; padding-top: 8px; border-top: 1px solid rgba(var(--text-rgb),.06); }
         .pending-toggle {
           display: flex; align-items: center; gap: 8px; width: 100%; padding: 12px 20px;
-          background: none; border: 0; color: rgba(255,255,255,.45);
+          background: none; border: 0; color: rgba(var(--text-rgb),.45);
           font: 11px/1.5 'JetBrains Mono', monospace; text-align: left; cursor: pointer;
         }
-        .pending-toggle:hover { color: rgba(255,255,255,.75); }
-        .pending-count { margin-left: auto; color: rgba(255,255,255,.3); }
+        .pending-toggle:hover { color: rgba(var(--text-rgb),.75); }
+        .pending-count { margin-left: auto; color: rgba(var(--text-rgb),.3); }
         .cert-row { display: block; background: transparent; }
-        .cert-row:nth-child(even) > div { background: rgba(255,255,255,0.01); }
+        .cert-row:nth-child(even) > div { background: rgba(var(--text-rgb),0.01); }
         .cert-row-osce3 > div { position: relative; overflow: hidden; isolation: isolate; }
         .cert-row-osce3 > div::before {
           content: ''; position: absolute; inset: 0; z-index: -1;
-          background: linear-gradient(to right, rgba(20,20,20,0.95), rgba(20,20,20,0.85) 55%, rgba(20,20,20,0.35));
+          background: linear-gradient(to right, rgba(var(--panel-rgb),0.95), rgba(var(--panel-rgb),0.85) 55%, rgba(var(--panel-rgb),0.35));
           pointer-events: none;
         }
         .cert-row-osce3 .cert-badge-outline {
@@ -812,23 +823,23 @@ export default function Portfolio() {
           pointer-events: none; z-index: -2;
         }
         .nav-btn { transition: background 0.12s ease, color 0.12s ease; }
-        .nav-btn:hover { background: rgba(255,255,255,0.06) !important; color: rgba(255,255,255,0.85) !important; }
-        .copy-btn:hover { border-color: rgba(255,255,255,0.3) !important; color: rgba(255,255,255,0.95) !important; }
+        .nav-btn:hover { background: rgba(var(--text-rgb),0.06) !important; color: rgba(var(--text-rgb),0.85) !important; }
+        .copy-btn:hover { border-color: rgba(var(--text-rgb),0.3) !important; color: rgba(var(--text-rgb),0.95) !important; }
         .ext-link { transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease; }
-        .ext-link:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.25); color: #fff; }
+        .ext-link:hover { background: rgba(var(--text-rgb),0.04); border-color: rgba(var(--text-rgb),0.25); color: var(--text); }
         .contact-link { transition: background 0.12s ease, border-color 0.12s ease; }
-        .contact-link:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.18); }
+        .contact-link:hover { background: rgba(var(--text-rgb),0.06); border-color: rgba(var(--text-rgb),0.18); }
 
         /* Scrollbars */
-        .scroll-area { overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.12) transparent; }
+        .scroll-area { overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(var(--text-rgb),0.12) transparent; }
         .scroll-area::-webkit-scrollbar { width: 6px; }
-        .scroll-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+        .scroll-area::-webkit-scrollbar-thumb { background: rgba(var(--text-rgb),0.12); border-radius: 3px; }
 
         /* Layout primitives */
         .shell { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
         .rail {
-          width: 56px; flex-shrink: 0; background: #0a0a0a;
-          border-right: 1px solid rgba(255,255,255,0.07);
+          width: 56px; flex-shrink: 0; background: var(--rail);
+          border-right: 1px solid rgba(var(--text-rgb),0.07);
           display: flex; flex-direction: column;
           align-items: center; padding-top: 16px; gap: 4px;
           transition: width 0.18s ease;
@@ -841,20 +852,21 @@ export default function Portfolio() {
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
           font-size: 13px; font-weight: 600;
         }
-        .rail-toggle { margin-top: auto; margin-bottom: 12px; }
+        .theme-toggle { margin-top: auto; }
+        .rail-toggle { margin-bottom: 12px; }
         .list-col {
-          width: 240px; flex-shrink: 0; background: #141414;
-          border-right: 1px solid rgba(255,255,255,0.07);
+          width: 240px; flex-shrink: 0; background: var(--panel);
+          border-right: 1px solid rgba(var(--text-rgb),0.07);
           display: flex; flex-direction: column;
         }
-        .content-col { flex: 1; background: #111; overflow: hidden auto; }
+        .content-col { flex: 1; background: var(--page); overflow: hidden auto; }
         .article-wrap { position: relative; flex: 1; min-width: 0; max-width: 780px; }
         .detail-panel { padding: 36px 40px 36px 64px; max-width: 780px; }
         .about-header { display: flex; align-items: center; gap: 24px; margin-bottom: 32px; }
         .about-portrait {
           width: 176px; height: 176px; flex-shrink: 0; object-fit: cover;
           object-position: center 30%; border-radius: 18px;
-          border: 1px solid rgba(255,255,255,0.12);
+          border: 1px solid rgba(var(--text-rgb),0.12);
           box-shadow: 0 18px 45px rgba(0,0,0,0.28);
         }
 
@@ -878,17 +890,18 @@ export default function Portfolio() {
           .rail, .rail.expanded {
             width: 100%; height: 56px; flex-direction: row;
             padding: 0 12px; gap: 4px; align-items: center; padding-top: 0;
-            border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07);
+            border-right: none; border-bottom: 1px solid rgba(var(--text-rgb),0.07);
             position: sticky; top: 0; z-index: 20; overflow-x: auto;
           }
           .rail .logo-mark { margin-bottom: 0 !important; margin-right: 8px; }
           .rail.expanded .logo-mark { align-self: auto; margin-left: 0; }
           .rail > .nav-btn, .rail.expanded > .nav-btn { width: 40px; padding: 0; justify-content: center; }
           .rail .nav-label, .rail .rail-toggle { display: none; }
+          .rail .theme-toggle { margin-top: 0; margin-left: auto; }
           .rail .nav-active-bar { display: none; }
           .list-col {
             width: 100%;
-            border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07);
+            border-right: none; border-bottom: 1px solid rgba(var(--text-rgb),0.07);
           }
           .list-col.collapsed .list-scroll { display: none; }
           .content-col { overflow: visible; }
@@ -913,38 +926,38 @@ export default function Portfolio() {
           max-height: calc(100vh - 80px);
           overflow-y: auto;
         }
-        .rail-section { margin-bottom: 24px; padding-bottom: 22px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .rail-section { margin-bottom: 24px; padding-bottom: 22px; border-bottom: 1px solid rgba(var(--text-rgb),0.06); }
         .rail-section:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
         .rail-title {
-          font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.55);
+          font-size: 11px; font-weight: 700; color: rgba(var(--text-rgb),0.55);
           letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;
         }
         .rail-toc { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
         .rail-toc-link {
           display: block; padding: 6px 0 6px 12px;
-          font-size: 12.5px; color: rgba(255,255,255,0.55);
+          font-size: 12.5px; color: rgba(var(--text-rgb),0.55);
           text-decoration: none; line-height: 1.4;
-          border-left: 2px solid rgba(255,255,255,0.08);
+          border-left: 2px solid rgba(var(--text-rgb),0.08);
           transition: color 0.12s ease, border-color 0.12s ease;
           cursor: pointer;
         }
-        .rail-toc-link:hover { color: rgba(255,255,255,0.9); border-left-color: rgba(255,255,255,0.3); }
-        .rail-toc-link.is-active { color: #fff; border-left-color: #fff; }
+        .rail-toc-link:hover { color: rgba(var(--text-rgb),0.9); border-left-color: rgba(var(--text-rgb),0.3); }
+        .rail-toc-link.is-active { color: var(--text); border-left-color: var(--text); }
         .rail-meta { display: grid; grid-template-columns: 80px 1fr; gap: 8px 12px; margin: 0 0 14px 0; align-items: center; }
         .rail-meta dt { line-height: 1.3; }
         .rail-meta dd { line-height: 1.3; }
         .rail-link {
           display: inline-flex; align-items: center; gap: 6px;
-          font-size: 12px; color: rgba(255,255,255,0.78);
+          font-size: 12px; color: rgba(var(--text-rgb),0.78);
           text-decoration: none; padding: 6px 12px; border-radius: 6px;
-          border: 1px solid rgba(255,255,255,0.12); margin-top: 8px; margin-right: 6px;
+          border: 1px solid rgba(var(--text-rgb),0.12); margin-top: 8px; margin-right: 6px;
           font-family: 'JetBrains Mono', monospace;
           background: transparent; cursor: pointer;
           transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
         }
-        .rail-link:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.25); color: #fff; }
+        .rail-link:hover { background: rgba(var(--text-rgb),0.04); border-color: rgba(var(--text-rgb),0.25); color: var(--text); }
         .right-rail::-webkit-scrollbar { width: 4px; }
-        .right-rail::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+        .right-rail::-webkit-scrollbar-thumb { background: rgba(var(--text-rgb),0.1); border-radius: 2px; }
 
         @media (max-width: 1100px) { .right-rail { display: none; } }
 
@@ -978,13 +991,13 @@ export default function Portfolio() {
         <nav className={`rail ${railExpanded ? "expanded" : ""}`} aria-label="Primary">
           <div className="logo-mark" aria-hidden="true" style={{
             width: 32, height: 32, borderRadius: "8px",
-            background: "#0a0a0a",
+            background: "var(--rail)",
             border: "1px solid rgba(74,222,128,0.4)",
             boxShadow: "0 0 4px rgba(74,222,128,0.08)",
             display: "flex", alignItems: "center", justifyContent: "center",
             marginBottom: "16px", flexShrink: 0,
           }}>
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "12px", fontWeight: 700, color: "#4ade80" }}>{">_"}</span>
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "12px", fontWeight: 700, color: "var(--logo)" }}>{">_"}</span>
           </div>
 
           {navItems.map(({ id, label, Icon }) => {
@@ -996,8 +1009,8 @@ export default function Portfolio() {
                 onClick={() => switchSection(id)}
                 style={{
                   height: 40, borderRadius: "10px", border: "none",
-                  background: active ? "rgba(255,255,255,0.1)" : "transparent",
-                  color: active ? "#fff" : "rgba(255,255,255,0.55)",
+                  background: active ? "rgba(var(--text-rgb),0.1)" : "transparent",
+                  color: active ? "var(--text)" : "rgba(var(--text-rgb),0.55)",
                   cursor: "pointer", display: "flex", alignItems: "center",
                   position: "relative", flexShrink: 0,
                 }}>
@@ -1007,12 +1020,25 @@ export default function Portfolio() {
                   <span className="nav-active-bar" aria-hidden="true" style={{
                     position: "absolute", left: -1, top: "50%", transform: "translateY(-50%)",
                     width: 3, height: 20, borderRadius: "0 2px 2px 0",
-                    background: "#fff",
+                    background: "var(--text)",
                   }} />
                 )}
               </button>
             );
           })}
+
+          <button type="button" className="nav-btn theme-toggle"
+            aria-label={`Colour theme: ${theme === "amber" ? "Ink & Amber (light)" : "Original"}. Switch to ${theme === "amber" ? "Original" : "Ink & Amber (light)"}`}
+            title={`Theme: ${theme === "amber" ? "Ink & Amber (light)" : "Original"}. Click to switch.`}
+            aria-pressed={theme === "amber"}
+            onClick={() => setTheme(current => current === "amber" ? "original" : "amber")}
+            style={{ height: 40, borderRadius: "10px", border: "none", background: "transparent", color: "var(--accent)", cursor: "pointer", display: "flex", alignItems: "center", flexShrink: 0 }}>
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <circle cx="9" cy="9" r="6.5" stroke="currentColor" strokeWidth="1.4" />
+              <path d="M9 2.5A6.5 6.5 0 0 0 9 15.5Z" fill="currentColor" />
+            </svg>
+            {railExpanded && <span className="nav-label">{theme === "amber" ? "Ink & Amber" : "Original"}</span>}
+          </button>
 
           <button
             type="button"
@@ -1022,7 +1048,7 @@ export default function Portfolio() {
             onClick={() => setRailExpanded(expanded => !expanded)}
             style={{
               height: 40, borderRadius: "10px", border: "none", background: "transparent",
-              color: "rgba(255,255,255,0.55)", cursor: "pointer", display: "flex",
+              color: "rgba(var(--text-rgb),0.55)", cursor: "pointer", display: "flex",
               alignItems: "center", position: "relative", flexShrink: 0,
             }}
           >
@@ -1049,14 +1075,14 @@ export default function Portfolio() {
           >
             <div style={{
               padding: "16px 16px 12px",
-              borderBottom: "1px solid rgba(255,255,255,0.06)",
+              borderBottom: "1px solid rgba(var(--text-rgb),0.06)",
               flexShrink: 0,
             }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: "18px", fontWeight: 700, color: "#fff" }}>
+                  <div style={{ fontSize: "18px", fontWeight: 700, color: "var(--text)" }}>
                     {section === "cves" ? CVES.length + PENDING_CVES.length : section === "writing" ? POSTS.length : section === "tools" ? TOOLS.length : section === "consulting" ? CONSULTATION_OFFERS.length : (about.certifications?.length || 0)}{" "}
-                    <span style={{ color: "rgba(255,255,255,0.5)", fontWeight: 400, fontSize: "14px" }}>
+                    <span style={{ color: "rgba(var(--text-rgb),0.5)", fontWeight: 400, fontSize: "14px" }}>
                       {section === "cves" ? "CVEs" : section === "writing" ? "articles" : section === "tools" ? "tools" : section === "consulting" ? "sessions" : "certs"}
                     </span>
                   </div>
@@ -1068,8 +1094,8 @@ export default function Portfolio() {
                   aria-controls="list-scroll"
                   onClick={() => setMobileShowList(v => !v)}
                   style={{
-                    background: "transparent", border: "1px solid rgba(255,255,255,0.12)",
-                    color: "rgba(255,255,255,0.75)", padding: "6px 10px", borderRadius: "6px",
+                    background: "transparent", border: "1px solid rgba(var(--text-rgb),0.12)",
+                    color: "rgba(var(--text-rgb),0.75)", padding: "6px 10px", borderRadius: "6px",
                     cursor: "pointer", fontSize: "12px", fontFamily: "inherit",
                   }}
                 >{mobileShowList ? "Hide" : "Show"}</button>
@@ -1079,7 +1105,7 @@ export default function Portfolio() {
                 <div style={{ marginTop: "12px" }}>
                   <div style={{ position: "relative" }}>
                     <svg aria-hidden="true" width="14" height="14" viewBox="0 0 18 18" fill="none"
-                         style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.42)", pointerEvents: "none" }}>
+                         style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "rgba(var(--text-rgb),0.42)", pointerEvents: "none" }}>
                       <circle cx="7.5" cy="7.5" r="4.75" stroke="currentColor" strokeWidth="1.5" />
                       <path d="M11 11l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                     </svg>
@@ -1092,13 +1118,13 @@ export default function Portfolio() {
                       aria-describedby="list-search-status"
                       style={{
                         width: "100%", height: 34, padding: "0 10px 0 32px",
-                        borderRadius: "7px", border: "1px solid rgba(255,255,255,0.1)",
-                        background: "rgba(255,255,255,0.045)", color: "#fff",
+                        borderRadius: "7px", border: "1px solid rgba(var(--text-rgb),0.1)",
+                        background: "rgba(var(--text-rgb),0.045)", color: "var(--text)",
                         fontFamily: "'JetBrains Mono', monospace", fontSize: "11px",
                       }}
                     />
                   </div>
-                  <div id="list-search-status" aria-live="polite" style={{ marginTop: searchQuery.trim() ? "5px" : 0, fontSize: "10px", color: "rgba(255,255,255,0.45)" }}>
+                  <div id="list-search-status" aria-live="polite" style={{ marginTop: searchQuery.trim() ? "5px" : 0, fontSize: "10px", color: "rgba(var(--text-rgb),0.45)" }}>
                     {searchQuery.trim() ? `${searchCount} ${searchCount === 1 ? "match" : "matches"}` : ""}
                   </div>
                 </div>
@@ -1121,7 +1147,7 @@ export default function Portfolio() {
                       </div>
                       <div className="cve-row-meta">
                         <span className="cve-row-id">{cve.id}</span>
-                        <span className="cve-severity-indicator" aria-hidden="true" title={`${cve.severity} severity`}
+                        <span className="cve-severity-indicator" data-severity={cve.severity} aria-hidden="true" title={`${cve.severity} severity`}
                               style={{
                                 color: SEV_META[cve.severity]?.indicator || "#888",
                                 background: `${SEV_META[cve.severity]?.indicator || "#888888"}1a`,
@@ -1174,13 +1200,13 @@ export default function Portfolio() {
               )}
 
               {section === "cves" && visibleCveCount === 0 && (
-                <li style={{ padding: "28px 18px", textAlign: "center", color: "rgba(255,255,255,0.5)", fontSize: "12px", lineHeight: 1.6 }}>
+                <li style={{ padding: "28px 18px", textAlign: "center", color: "rgba(var(--text-rgb),0.5)", fontSize: "12px", lineHeight: 1.6 }}>
                   No CVEs match “{cveQuery.trim()}”.
                 </li>
               )}
 
               {["writing", "tools"].includes(section) && searchCount === 0 && (
-                <li style={{ padding: "28px 18px", textAlign: "center", color: "rgba(255,255,255,0.5)", fontSize: "12px", lineHeight: 1.6 }}>
+                <li style={{ padding: "28px 18px", textAlign: "center", color: "rgba(var(--text-rgb),0.5)", fontSize: "12px", lineHeight: 1.6 }}>
                   No {searchLabel} match “{searchQuery.trim()}”.
                 </li>
               )}
@@ -1212,7 +1238,7 @@ export default function Portfolio() {
                       style={{
                         width: "100%", textAlign: "left", color: "inherit", font: "inherit",
                         padding: "14px 16px",
-                        borderBottom: "1px solid rgba(255,255,255,0.04)",
+                        borderBottom: "1px solid rgba(var(--text-rgb),0.04)",
                         borderLeft: "2px solid transparent",
                         cursor: "default", display: "block",
                       }}>
@@ -1220,16 +1246,16 @@ export default function Portfolio() {
                         <img className="cert-badge-outline" src="images/osce3-outline.svg" alt="" aria-hidden="true" />
                       )}
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "3px", gap: "8px" }}>
-                        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "15px", color: cert.color || "rgba(255,255,255,0.95)", fontWeight: 700, letterSpacing: "-0.01em" }}>
+                        <span className="cert-name" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "15px", color: cert.color || "rgba(var(--text-rgb),0.95)", fontWeight: 700, letterSpacing: "-0.01em" }}>
                           {cert.name}
                         </span>
                         {cert.year && (
-                          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "rgba(255,255,255,0.2)", flexShrink: 0 }}>
+                          <span className="cert-year" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "rgba(var(--text-rgb),0.2)", flexShrink: 0 }}>
                             {cert.year}
                           </span>
                         )}
                         {cert.status && (
-                          <span style={{
+                          <span className="cert-status" style={{
                             fontSize: "10px", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase",
                             color: cert.color || "#38bdf8",
                             flexShrink: 0,
@@ -1238,7 +1264,7 @@ export default function Portfolio() {
                       </div>
                       {cert.description && (
                         <div style={{ fontSize: "11px", lineHeight: 1.3 }}>
-                          <span style={{ color: "rgba(255,255,255,0.55)" }}>{cert.description}</span>
+                          <span style={{ color: "rgba(var(--text-rgb),0.55)" }}>{cert.description}</span>
                         </div>
                       )}
                     </div>
@@ -1287,18 +1313,18 @@ export default function Portfolio() {
           <div style={{
             position: "sticky", top: 0, zIndex: 10,
             padding: "0 24px", height: "48px",
-            background: "rgba(17,17,17,0.92)", backdropFilter: "blur(10px)",
-            borderBottom: "1px solid rgba(255,255,255,0.06)",
+            background: "rgba(var(--page-rgb),0.92)", backdropFilter: "blur(10px)",
+            borderBottom: "1px solid rgba(var(--text-rgb),0.06)",
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px",
           }}>
             <nav aria-label="Breadcrumb" style={{ display: "flex", alignItems: "center", gap: "6px", minWidth: 0, flex: 1 }}>
-              <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>pr0f</span>
-              <span aria-hidden="true" style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)" }}>/</span>
-              <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)" }}>{section === "consulting" ? "sessions" : section === "writing" ? "articles" : section}</span>
+              <span style={{ fontSize: "12px", color: "rgba(var(--text-rgb),0.5)" }}>pr0f</span>
+              <span aria-hidden="true" style={{ fontSize: "12px", color: "rgba(var(--text-rgb),0.3)" }}>/</span>
+              <span style={{ fontSize: "12px", color: "rgba(var(--text-rgb),0.55)" }}>{section === "consulting" ? "sessions" : section === "writing" ? "articles" : section}</span>
               {section !== "about" && (
                 <>
-                  <span aria-hidden="true" style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)" }}>/</span>
-                  <span className="truncate" style={{ fontSize: "12px", color: "rgba(255,255,255,0.85)", fontWeight: 500, maxWidth: "60vw" }}
+                  <span aria-hidden="true" style={{ fontSize: "12px", color: "rgba(var(--text-rgb),0.3)" }}>/</span>
+                  <span className="truncate" style={{ fontSize: "12px", color: "rgba(var(--text-rgb),0.85)", fontWeight: 500, maxWidth: "60vw" }}
                         title={breadcrumbLabel}>
                     {breadcrumbLabel}
                   </span>
@@ -1308,20 +1334,20 @@ export default function Portfolio() {
             <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
               <a href={SOCIAL.github} target="_blank" rel="noopener noreferrer" className="ext-link"
                  style={{
-                   fontSize: "11px", color: "rgba(255,255,255,0.6)", textDecoration: "none",
-                   padding: "4px 10px", borderRadius: "4px", border: "1px solid rgba(255,255,255,0.1)",
+                   fontSize: "11px", color: "rgba(var(--text-rgb),0.6)", textDecoration: "none",
+                   padding: "4px 10px", borderRadius: "4px", border: "1px solid rgba(var(--text-rgb),0.1)",
                    fontFamily: "'JetBrains Mono', monospace",
                  }}>github ↗</a>
               <a href={SOCIAL.linkedin} target="_blank" rel="noopener noreferrer" className="ext-link"
                  style={{
-                   fontSize: "11px", color: "rgba(255,255,255,0.6)", textDecoration: "none",
-                   padding: "4px 10px", borderRadius: "4px", border: "1px solid rgba(255,255,255,0.1)",
+                   fontSize: "11px", color: "rgba(var(--text-rgb),0.6)", textDecoration: "none",
+                   padding: "4px 10px", borderRadius: "4px", border: "1px solid rgba(var(--text-rgb),0.1)",
                    fontFamily: "'JetBrains Mono', monospace",
                  }}>linkedin ↗</a>
               <a href="https://topmate.io/deva_parekh" target="_blank" rel="noopener noreferrer" className="ext-link"
                  style={{
-                   fontSize: "11px", color: "rgba(255,255,255,0.6)", textDecoration: "none",
-                   padding: "4px 10px", borderRadius: "4px", border: "1px solid rgba(255,255,255,0.1)",
+                   fontSize: "11px", color: "rgba(var(--text-rgb),0.6)", textDecoration: "none",
+                   padding: "4px 10px", borderRadius: "4px", border: "1px solid rgba(var(--text-rgb),0.1)",
                    fontFamily: "'JetBrains Mono', monospace",
                  }}>topmate ↗</a>
             </div>

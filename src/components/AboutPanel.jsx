@@ -19,13 +19,13 @@ export default function AboutPanel({ components }) {
           alt={`Illustrated portrait of ${about.name} in a workspace`}
         />
         <div>
-          <h1 id="about-title" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "26px", fontWeight: 700, color: "#fff", letterSpacing: "-0.02em" }}>{about.name}</h1>
-          <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)", fontFamily: "'JetBrains Mono', monospace" }}>{about.role}</div>
+          <h1 id="about-title" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "26px", fontWeight: 700, color: "var(--text)", letterSpacing: "-0.02em" }}>{about.name}</h1>
+          <div style={{ fontSize: "13px", color: "rgba(var(--text-rgb),0.6)", fontFamily: "'JetBrains Mono', monospace" }}>{about.role}</div>
           <a className="about-book-link" href="#/consulting">Book a 1:1 session →</a>
         </div>
       </div>
 
-      <div className="about-bio" style={{ fontSize: "15px", color: "rgba(255,255,255,0.75)", lineHeight: 1.85, marginBottom: "28px" }}>
+      <div className="about-bio" style={{ fontSize: "15px", color: "rgba(var(--text-rgb),0.75)", lineHeight: 1.85, marginBottom: "28px" }}>
         <About components={components} />
       </div>
 
