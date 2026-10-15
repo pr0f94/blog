@@ -23,6 +23,8 @@ const HLJS_LANGS = new Set(["bash", "sh", "shell", "python", "py", "php", "json"
 // ─── CONTENT LOADERS ──────────────────────────────────────────────────────────
 // Add a new CVE/post/tool by dropping an MDX file in the matching directory.
 // Filename (minus .mdx) becomes the id and the URL slug.
+// CVEs with `severity: CRITICAL` automatically use the crimson row/heading
+// accents and continuous ember animation. No per-CVE styling is needed.
 const idFromPath = (p) => p.split("/").pop().replace(/\.mdx$/, "");
 
 const cveModules  = import.meta.glob("./content/cves/*.mdx",  { eager: true });
@@ -316,7 +318,7 @@ const MdxBody = ({ Content }) =>
 
 const CVEDetail = ({ cve }) => (
   <article className="detail-panel" aria-labelledby="cve-title">
-    <header style={{ marginBottom: "24px" }}>
+    <header className={cve.severity === "CRITICAL" ? "cve-critical-header" : undefined} style={{ marginBottom: "24px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px", flexWrap: "wrap" }}>
         <Badge label={cve.severity} sev={cve.severity} />
         <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", color: "rgba(255,255,255,0.6)" }}>CVSS {cve.cvss}</span>
@@ -727,6 +729,52 @@ export default function Portfolio() {
         }
         .cve-list-row:hover, .list-entry:hover { background: rgba(255,255,255,.025); }
         .cve-list-row[aria-current="true"], .list-entry[aria-current="true"] { background: rgba(255,255,255,.065); }
+        /* Critical CVE design: crimson row + edge glow, header gradient,
+           and flickering severity indicator with rising embers.
+           Keep other severities neutral; respect reduced-motion below. */
+        .cve-list-row-critical {
+          position: relative; isolation: isolate; overflow: hidden;
+          background: linear-gradient(105deg, rgba(255,54,94,.085), rgba(255,54,94,.015));
+        }
+        .cve-list-row-critical::before {
+          content: ''; position: absolute; left: 0; top: 12px; bottom: 12px;
+          width: 2px; border-radius: 2px; background: rgba(255,54,94,.65);
+          box-shadow: 0 0 7px rgba(255,54,94,.25); pointer-events: none;
+        }
+        .cve-list-row-critical:hover { background: linear-gradient(105deg, rgba(255,54,94,.12), rgba(255,54,94,.025)); }
+        .cve-list-row-critical[aria-current="true"] { background: linear-gradient(105deg, rgba(255,54,94,.15), rgba(255,54,94,.035)); }
+        .cve-critical-header { position: relative; isolation: isolate; }
+        .cve-critical-header::before {
+          content: ''; position: absolute; z-index: -1; pointer-events: none;
+          inset: -20px -18px 0; border-radius: 10px;
+          background: radial-gradient(ellipse at top left, rgba(255,54,94,.1), transparent 70%);
+        }
+        .cve-list-row-critical .cve-severity-indicator {
+          position: relative; animation: critical-heat 2.7s ease-in-out infinite;
+        }
+        @keyframes critical-heat {
+          0%, 100% { box-shadow: 0 0 4px rgba(255,54,94,.16), 0 -2px 6px rgba(255,112,46,.08); }
+          24%, 68% { box-shadow: 0 0 6px rgba(255,54,94,.24), 0 -3px 8px rgba(255,112,46,.16); }
+          42%, 83% { box-shadow: 0 0 3px rgba(255,54,94,.12), 0 -1px 5px rgba(255,112,46,.1); }
+        }
+        .critical-ember {
+          position: absolute; bottom: 10px; left: var(--ember-left);
+          width: 1.5px; height: 2.5px; border-radius: 50%;
+          background: #ff884d; box-shadow: 0 0 3px rgba(255,112,46,.5);
+          opacity: 0; pointer-events: none;
+          animation: critical-ember-rise var(--ember-duration) linear infinite;
+          animation-delay: var(--ember-delay);
+        }
+        @keyframes critical-ember-rise {
+          0% { opacity: 0; transform: translate(0, 0) scale(.6); }
+          20% { opacity: .55; }
+          55% { opacity: .35; transform: translate(var(--ember-drift), -9px) scale(.7); }
+          100% { opacity: 0; transform: translate(var(--ember-drift), -18px) scale(.2); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .cve-list-row-critical .cve-severity-indicator { animation: none; }
+          .critical-ember { display: none; }
+        }
         .cve-row-heading { display: flex; align-items: center; gap: 10px; }
         .cve-row-meta { display: flex; align-items: baseline; gap: 10px; margin-top: 5px; }
         .cve-row-meta .cve-row-id { margin-top: 0; }
@@ -1064,7 +1112,7 @@ export default function Portfolio() {
                 const active = selected === cve.id;
                 return (
                   <li key={cve.id}>
-                    <button type="button" className="cve-list-row"
+                    <button type="button" className={`cve-list-row${cve.severity === "CRITICAL" ? " cve-list-row-critical" : ""}`}
                       aria-current={active ? "true" : undefined}
                       onClick={() => selectItem(cve.id)}
                       aria-label={`${cve.product}, ${cve.id}, ${cve.severity} severity`}>
@@ -1077,7 +1125,19 @@ export default function Portfolio() {
                               style={{
                                 color: SEV_META[cve.severity]?.indicator || "#888",
                                 background: `${SEV_META[cve.severity]?.indicator || "#888888"}1a`,
-                              }}>{cve.severity?.charAt(0)}</span>
+                              }}>
+                          {cve.severity?.charAt(0)}
+                          {cve.severity === "CRITICAL" && [
+                            { left: "3px", drift: "-3px", duration: "2.2s", delay: "-1.1s" },
+                            { left: "8px", drift: "2px", duration: "2.8s", delay: "-2.3s" },
+                            { left: "13px", drift: "-2px", duration: "2.5s", delay: "-.4s" },
+                          ].map((ember, index) => (
+                            <span key={index} className="critical-ember" style={{
+                              "--ember-left": ember.left, "--ember-drift": ember.drift,
+                              "--ember-duration": ember.duration, "--ember-delay": ember.delay,
+                            }} />
+                          ))}
+                        </span>
                       </div>
                     </button>
                   </li>
