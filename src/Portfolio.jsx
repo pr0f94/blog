@@ -67,7 +67,7 @@ const PENDING_CVES = [
     type: "Severity unconfirmed",
     summary: "A vulnerability identified and responsibly disclosed to the vendor. CVE assignment, severity, and technical details are pending publication.",
   },
-  ...Array.from({ length: 6 }, (_, index) => ({
+  ...Array.from({ length: 4 }, (_, index) => ({
     id: `pending-disclosure-${String(index + 5).padStart(2, "0")}`,
     status: "Pending disclosure",
     product: "Confidential software product",
