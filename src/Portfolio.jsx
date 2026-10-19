@@ -7,6 +7,7 @@ import json from "highlight.js/lib/languages/json";
 import go from "highlight.js/lib/languages/go";
 import "highlight.js/styles/github-dark.css";
 import AboutPanel from "./components/AboutPanel.jsx";
+import Osce3Artwork from "./components/Osce3Artwork.jsx";
 import { frontmatter as about } from "./content/about.mdx";
 import "./themes.css";
 
@@ -819,9 +820,10 @@ export default function Portfolio() {
         }
         .cert-row-osce3 .cert-badge-outline {
           position: absolute; inset: 0; width: 100%; height: 100%;
-          object-fit: cover; object-position: center; opacity: 1;
+          opacity: 1;
           pointer-events: none; z-index: -2;
         }
+        .cert-badge-outline > svg { display: block; width: 100%; height: 100%; }
         .nav-btn { transition: background 0.12s ease, color 0.12s ease; }
         .nav-btn:hover { background: rgba(var(--text-rgb),0.06) !important; color: rgba(var(--text-rgb),0.85) !important; }
         .copy-btn:hover { border-color: rgba(var(--text-rgb),0.3) !important; color: rgba(var(--text-rgb),0.95) !important; }
@@ -1243,7 +1245,7 @@ export default function Portfolio() {
                         cursor: "default", display: "block",
                       }}>
                       {cert.id === "osce3" && (
-                        <img className="cert-badge-outline" src="images/osce3-outline.svg" alt="" aria-hidden="true" />
+                        <Osce3Artwork />
                       )}
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "3px", gap: "8px" }}>
                         <span className="cert-name" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "15px", color: cert.color || "rgba(var(--text-rgb),0.95)", fontWeight: 700, letterSpacing: "-0.01em" }}>

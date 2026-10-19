@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="preload" as="image" href="./images/about-portrait-480.jpg"
+      imagesrcset="./images/about-portrait-480.jpg 480w, ./images/about-portrait-960.jpg 960w"
+      imagesizes="(max-width: 480px) calc(100vw - 36px), (max-width: 768px) 136px, 176px"
+      fetchpriority="high" />
     <meta name="description" content="Security research, CVEs, writeups, and open-source tooling by pr0f, an application security engineer working across offensive and defensive AppSec." />
     <meta name="theme-color" content="#111111" />
     <meta property="og:title" content="pr0f — Security Research" />

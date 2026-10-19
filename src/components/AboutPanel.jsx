@@ -15,7 +15,14 @@ export default function AboutPanel({ components }) {
       <div className="about-header">
         <img
           className="about-portrait"
-          src="images/about-portrait.png"
+          src="images/about-portrait-480.jpg"
+          srcSet="images/about-portrait-480.jpg 480w, images/about-portrait-960.jpg 960w"
+          sizes="(max-width: 480px) calc(100vw - 36px), (max-width: 768px) 136px, 176px"
+          width="1412"
+          height="1114"
+          loading="eager"
+          decoding="sync"
+          fetchpriority="high"
           alt={`Illustrated portrait of ${about.name} in a workspace`}
         />
         <div>

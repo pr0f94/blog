@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="399" viewBox="0 0 400 399" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="399" viewBox="0 0 400 399" preserveAspectRatio="xMidYMid slice" fill="none">
 <style>
   .outline-pulse { stroke-dasharray: 48 108; animation: trace-pulse 4s linear infinite; }
   @keyframes trace-pulse { from { stroke-dashoffset: 156; } to { stroke-dashoffset: 0; } }
