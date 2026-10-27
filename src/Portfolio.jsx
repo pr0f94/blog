@@ -71,13 +71,13 @@ const PENDING_CVES = [
     type: "Severity unconfirmed",
     summary: "A vulnerability identified and responsibly disclosed to the vendor. CVE assignment, severity, and technical details are pending publication.",
   },
-  ...Array.from({ length: 4 }, (_, index) => ({
-    id: `pending-disclosure-${String(index + 5).padStart(2, "0")}`,
+  {
+    id: "pending-disclosure-05",
     status: "Pending disclosure",
     product: "Confidential software product",
     type: "Severity unconfirmed",
     summary: "A vulnerability identified and responsibly disclosed to the vendor. CVE assignment, severity, and technical details are pending publication.",
-  })),
+  },
 ];
 
 const POSTS = Object.entries(postModules)
@@ -772,23 +772,23 @@ export default function Portfolio() {
         .critical-ember {
           position: absolute; bottom: 10px; left: var(--ember-left);
           width: 1.5px; height: 2.5px; border-radius: 50%;
-          background: #ff884d; box-shadow: 0 0 3px rgba(255,112,46,.5);
+          background: linear-gradient(to top, #ff365e, #ffd166);
+          box-shadow: 0 0 3px rgba(255,90,54,.9), 0 0 7px rgba(255,54,94,.55);
           opacity: 0; pointer-events: none;
           animation: critical-ember-rise var(--ember-duration) linear infinite;
           animation-delay: var(--ember-delay);
         }
         @keyframes critical-ember-rise {
           0% { opacity: 0; transform: translate(0, 0) scale(.6); }
-          20% { opacity: .55; }
-          55% { opacity: .35; transform: translate(var(--ember-drift), -9px) scale(.7); }
+          20% { opacity: .9; }
+          55% { opacity: .65; transform: translate(var(--ember-drift), -9px) scale(.7); }
           100% { opacity: 0; transform: translate(var(--ember-drift), -18px) scale(.2); }
         }
         @media (prefers-reduced-motion: reduce) {
           .cve-list-row-critical .cve-severity-indicator { animation: none; }
           .critical-ember { display: none; }
         }
-        .cve-row-heading { display: flex; align-items: center; gap: 10px; }
-        .cve-row-meta { display: flex; align-items: baseline; gap: 10px; margin-top: 5px; }
+        .cve-row-meta { display: flex; align-items: baseline; gap: 10px; }
         .cve-row-meta .cve-row-id { margin-top: 0; }
         .cve-row-product, .list-entry-title { min-width: 0; font-size: 13px; font-weight: 500; line-height: 1.4; color: rgba(var(--text-rgb),.72); }
         .list-entry-title { display: block; }
@@ -1143,10 +1143,7 @@ export default function Portfolio() {
                     <button type="button" className={`cve-list-row${cve.severity === "CRITICAL" ? " cve-list-row-critical" : ""}`}
                       aria-current={active ? "true" : undefined}
                       onClick={() => selectItem(cve.id)}
-                      aria-label={`${cve.product}, ${cve.id}, ${cve.severity} severity`}>
-                      <div className="cve-row-heading">
-                        <span className="cve-row-product truncate">{cve.product}</span>
-                      </div>
+                      aria-label={`${cve.id}, ${cve.severity} severity`}>
                       <div className="cve-row-meta">
                         <span className="cve-row-id">{cve.id}</span>
                         <span className="cve-severity-indicator" data-severity={cve.severity} aria-hidden="true" title={`${cve.severity} severity`}
