@@ -57,27 +57,6 @@ const PENDING_CVES = [
     type: "Severity unconfirmed",
     summary: "A vulnerability identified and responsibly disclosed to the vendor. CVE assignment, severity, and technical details are pending publication.",
   },
-  {
-    id: "pending-disclosure-03",
-    status: "Pending disclosure",
-    product: "Confidential software product",
-    type: "Severity unconfirmed",
-    summary: "A vulnerability identified and responsibly disclosed to the vendor. CVE assignment, severity, and technical details are pending publication.",
-  },
-  {
-    id: "pending-disclosure-04",
-    status: "Pending disclosure",
-    product: "Confidential software product",
-    type: "Severity unconfirmed",
-    summary: "A vulnerability identified and responsibly disclosed to the vendor. CVE assignment, severity, and technical details are pending publication.",
-  },
-  {
-    id: "pending-disclosure-05",
-    status: "Pending disclosure",
-    product: "Confidential software product",
-    type: "Severity unconfirmed",
-    summary: "A vulnerability identified and responsibly disclosed to the vendor. CVE assignment, severity, and technical details are pending publication.",
-  },
 ];
 
 const POSTS = Object.entries(postModules)
