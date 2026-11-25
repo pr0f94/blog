@@ -1,0 +1,197 @@
+---
+title: "Building Squadrone: 21 WordPress Plugin CVEs in 30 Days"
+date: "25 November 2026"
+readTime: "7 min"
+tag: Tooling
+summary: Squadrone is an AI-assisted vulnerability research platform I built to analyse WordPress plugins, challenge potential vulnerabilities, and verify genuine findings in isolated test environments.
+---
+
+## Why I Ended Up Building It
+
+Squadrone grew out of a problem I kept running into: AI can sound certain long before the evidence deserves it.
+
+<Callout
+  tone="violet"
+  label="30-day result"
+  title="21 WordPress plugin CVEs"
+>
+  All 21 have confirmed CVE assignments. At the time of writing, 19 are public and two remain under coordinated disclosure.
+</Callout>
+
+I once reviewed an RCE that a model had reported with complete confidence. The path looked convincing. Input reached a dangerous sink, the explanation made sense, and the report read as if the case were closed.
+
+It was not. The application passed that input through another service first, and that service validated it. The model had found a dangerous-looking path, not a vulnerability.
+
+That gap is what Squadrone is built around. AI is useful for finding suspicious paths and asking good questions. It is much less reliable at deciding when it has enough evidence to call something a finding.
+
+<Callout
+  tone="teal"
+  label="The rule"
+  title="The model gets a vote, not the final word."
+>
+  Squadrone can propose a zero-day candidate. Source evidence, counterevidence, runtime behaviour, and a clean repeat decide whether it survives.
+</Callout>
+
+## The Short Version
+
+I give Squadrone a WordPress plugin, and it does the unglamorous work first. It maps the shipped code, splits the review into focused areas, and gives me candidates to investigate. Most are rejected during validation. The interesting ones have to make it through four stages.
+
+<CardGrid>
+  <Card tone="teal" eyebrow="01" title="Map">
+    Acquire the official release and inventory the entry points, handlers, writes, roles, capabilities, and security-sensitive sinks.
+  </Card>
+  <Card tone="blue" eyebrow="02" title="Review">
+    Divide the code across focused security tracks. Every claim needs a source citation, a reachable path, and a realistic attacker.
+  </Card>
+  <Card tone="teal" eyebrow="03" title="Prove">
+    Run the attack and its negative control in an isolated WordPress environment, then restore everything and run the same proof again.
+  </Card>
+  <Card tone="violet" eyebrow="04" title="Decide">
+    Recheck current disclosure programme eligibility, prepare the evidence, and require separate human approval before external contact.
+  </Card>
+</CardGrid>
+
+The pipeline can stop earlier for source triage or manual verification, but the distinction never changes: a suspicious path is not a finding, and a finding is not permission to send a report.
+
+## The Workspace I Wanted
+
+Squadrone began as a command-line pipeline. That was enough to run research, but it was not enough to understand a long-running investigation at a glance. I wanted to see what was active, what needed me, what had failed, and what every candidate had already been through.
+
+![Squadrone's main research dashboard with active WordPress plugin names and versions covered by frosted security glass](images/squadrone-dashboard.png)
+
+*The main workspace. Active plugin names and versions are obscured.*
+
+<CardGrid columns={3}>
+  <Card tone="teal" title="Current">
+    Work that is queued, running, paused, or waiting for the next stage.
+  </Card>
+  <Card tone="blue" title="Attention">
+    Anything uncertain lands here instead of being quietly treated as complete.
+  </Card>
+  <Card tone="violet" title="Archive">
+    Completed and failed research stays available with its history intact.
+  </Card>
+</CardGrid>
+
+Opening a run shows its tasks, cost, candidates, verification state, report state, and activity without jumping between tools. Budgets and refinement limits belong to the exact run, so a broad scan and a deep investigation do not disappear into one number.
+
+![Squadrone candidate workspace showing 15 source-reviewed candidates with identifying details covered by frosted security glass](images/squadrone-candidates.png)
+
+*A 15-candidate workspace. Identifiers, versions, and source-to-proof details are obscured.*
+
+From here I can re-review a candidate, run a bounded deep dive, select a stronger revision, queue verification, or drop it. Dropping one does not erase how it got there.
+
+## Most Leads Don't Become Findings
+
+Squadrone does not start with a loose prompt asking a model to find bugs. Before model review, it builds a deterministic inventory of the shipped plugin attack surface and divides the work into four specialist security tracks, with source checks running alongside them:
+
+- Authorization and workflow boundaries
+- Injection and file operations
+- Cross-site scripting lifecycles
+- Authentication and session handling
+- Source coverage and consistency checks
+
+Each reviewer has to cite the code it read. A useful candidate needs an attacker-controlled source, a reachable path, the sink, the nearest control, a realistic privilege floor, counterevidence, and a concrete impact.
+
+Then a separate critic tries to break the claim. It follows callers and helpers, checks default configuration, challenges the attacker role, and looks for the kind of downstream validation that invalidated that confident RCE.
+
+<Callout
+  tone="blue"
+  label="Fail closed"
+  title="A gap stays a gap."
+>
+  If a reviewer runs out of context or a model call fails, the work remains incomplete. I would rather see a missing section than a fake green tick.
+</Callout>
+
+<CardGrid columns={3}>
+  <Card tone="blue" title="Candidate">
+    A source-backed lead worth challenging. It can still be wrong, unreachable, or lower impact than it first appears.
+  </Card>
+  <Card tone="teal" title="Finding">
+    A candidate that survived the controls, the runtime proof, the negative case, and the clean-state repeat.
+  </Card>
+  <Card tone="violet" title="Report">
+    A prepared disclosure package bound to the evidence that produced it. It still requires review and cannot send itself.
+  </Card>
+</CardGrid>
+
+## Prove It, Reset It, Prove It Again
+
+Source review can get close, but WordPress behaviour makes the final decision. Squadrone provisions an isolated WordPress and MariaDB environment, installs the unmodified plugin, creates legitimate prerequisites, and runs a generated proof of concept.
+
+The automated proof has to produce a supported observable result, currently an HTTP-semantic or authorization-decision outcome. The attack case must succeed, and the control case must not. Proof shapes outside that boundary remain manual.
+
+<CardGrid>
+  <Card tone="blue" eyebrow="Run one" title="Attack and control">
+    Exercise the claimed path and record structured evidence for both the exploit and the negative case.
+  </Card>
+  <Card tone="teal" eyebrow="Run two" title="Restore and repeat">
+    Restore the database and WordPress filesystem, then execute the same proof against a clean state.
+  </Card>
+</CardGrid>
+
+<Callout
+  tone="teal"
+  label="Clean-state rule"
+  title="If it only works once, it is not a finding."
+>
+  The second run catches hidden setup, stale state, reflected markers, and manual steps that never made it into the proof.
+</Callout>
+
+Some verification still belongs with a human. Browser-heavy DOM behaviour is one example. Squadrone would rather leave an explicit gap than manufacture confidence around a proof the sandbox cannot execute safely.
+
+## Enough Architecture to Stay Boring
+
+As runs became longer, I needed more than a wrapper around a CLI. A failed worker should not lose an investigation, a retry should not create duplicate work, and a message queue should never become the only place that knows what is happening.
+
+![Squadrone layered architecture showing its interfaces, control plane, execution plane, data plane, and external boundaries](images/squadrone-architecture.svg)
+
+*The layered architecture. Click the diagram to enlarge it.*
+
+<ArchitectureView
+  src="interactive/squadrone-architecture-live.html"
+  title="Squadrone architecture"
+/>
+
+The design comes down to a few rules:
+
+- **PostgreSQL owns workflow truth.** Runs, tasks, candidates, approvals, and artifact metadata survive worker restarts.
+- **The artifact store holds evidence bytes.** Source snapshots, PoCs, screenshots, and reports remain immutable and are bound back to workflow state by their hashes.
+- **RabbitMQ only delivers work.** Leases, heartbeats, idempotency keys, and bounded retries keep delivery from becoming state.
+- **Workers have narrow jobs.** Scanning, candidate refinement, verification, report preparation, and submission do not share every capability.
+- **Verification stays isolated.** The WordPress sandbox is separate from the research control plane and is restored between proofs.
+
+![Squadrone local infrastructure showing its Compose services, private storage boundaries, workers, and isolated verification project](images/squadrone-infrastructure.svg)
+
+*The local service layout and storage boundaries. Click the diagram to enlarge it.*
+
+The web interface and CLI use the same API. The browser can issue commands and approvals, but it never owns workflow state; PostgreSQL remains authoritative. The submission worker is narrower again: it does not receive model credentials, plugin source, pipeline configuration, or Docker control.
+
+## Where Automation Stops
+
+The tool can draft the report. It cannot decide to send it.
+
+<Callout
+  tone="violet"
+  label="Human boundary"
+  title="Preparing a report and sending it are two different actions."
+>
+  Review records the evidence, reproduction, content, and disclosure programme eligibility checks. External contact requires another single-use approval for that exact reviewed report.
+</Callout>
+
+Squadrone is a private local research system, not a hosted scanner. It analyses official plugin source and verifies candidates inside its own environment. It does not test production WordPress sites.
+
+It also stops when the evidence stops. That includes:
+
+- Incomplete source coverage
+- A contradictory attacker role or missing security boundary
+- A proof shape the sandbox cannot safely represent
+- An ambiguous external delivery outcome
+
+In those cases the work stays visible for review. It does not become a finding because a pipeline wanted a tidy answer.
+
+## What Comes Next
+
+I am still expanding the verification coverage, especially around browser-driven cases, and making it faster to move from a broad scan into a focused investigation.
+
+The part I value most is not automatic answers. It is having a durable record of what was checked, what failed, what changed my mind, and why a candidate finally earned the word finding. Fewer confident guesses, more evidence I can rerun.

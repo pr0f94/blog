@@ -1,0 +1,1825 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Squadrone · Live Architecture Reference</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #e8edf3;
+      --muted: #93a4b8;
+      --panel: #111c2b;
+      --panel-2: #172334;
+      --panel-3: #1d2b3d;
+      --canvas: #0b1420;
+      --line: #2c3c50;
+      --line-strong: #43546a;
+      --orange: #ff9900;
+      --orange-soft: #ffb84d;
+      --cyan: #40b9d4;
+      --purple: #b38bfa;
+      --teal: #36c5b0;
+      --green: #62c98d;
+      --red: #ff6b73;
+      --blue: #66a6ff;
+      --shadow: 0 18px 50px rgba(0, 0, 0, .34);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    button, input { font: inherit; }
+
+    button { color: inherit; }
+
+    .topbar {
+      height: 72px;
+      display: grid;
+      grid-template-columns: minmax(320px, 1fr) minmax(280px, 460px) auto;
+      align-items: center;
+      gap: 22px;
+      padding: 0 22px;
+      background: #121b28;
+      border-bottom: 1px solid #2e3a49;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, .24);
+      position: relative;
+      z-index: 20;
+    }
+
+    .brand {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .brand img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+      filter: drop-shadow(0 7px 10px rgba(0, 0, 0, .35));
+    }
+
+    .brand-copy { min-width: 0; }
+
+    .brand-copy strong {
+      display: block;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: -.01em;
+    }
+
+    .brand-copy span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .concept-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-left: 10px;
+      padding: 5px 8px;
+      color: #ffd89a;
+      background: rgba(255, 153, 0, .10);
+      border: 1px solid rgba(255, 153, 0, .35);
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .concept-badge::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      background: var(--orange);
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px rgba(255, 153, 0, .15);
+    }
+
+    .search-wrap { position: relative; }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      width: 17px;
+      height: 17px;
+      transform: translateY(-50%);
+      color: #91a2b6;
+      pointer-events: none;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      height: 40px;
+      padding: 0 42px 0 40px;
+      color: #edf3f8;
+      background: #0b1420;
+      border: 1px solid #3b4b5e;
+      border-radius: 5px;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    .search-wrap input:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(255, 153, 0, .13);
+    }
+
+    .search-wrap kbd {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      padding: 2px 6px;
+      color: #8798aa;
+      background: #182536;
+      border: 1px solid #34465a;
+      border-bottom-color: #4a5a6c;
+      border-radius: 3px;
+      font-size: 11px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 9px;
+    }
+
+    .header-actions button,
+    .icon-button {
+      height: 36px;
+      min-width: 36px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0 11px;
+      color: #d7e0e9;
+      background: #1a2839;
+      border: 1px solid #34465a;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .header-actions button:hover,
+    .icon-button:hover { border-color: #6c7f94; background: #213247; }
+
+    .shell {
+      height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      background: var(--canvas);
+    }
+
+    .sidebar,
+    .details {
+      min-height: 0;
+      overflow: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #3a4a5d transparent;
+      background: var(--panel);
+    }
+
+    .sidebar {
+      padding: 18px 15px 24px;
+      border-right: 1px solid #2c3a4b;
+    }
+
+    .details {
+      padding: 18px;
+      border-left: 1px solid #2c3a4b;
+    }
+
+    .section + .section {
+      margin-top: 22px;
+      padding-top: 19px;
+      border-top: 1px solid #2a394b;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .section-heading h2 {
+      margin: 0;
+      color: #f1f5f9;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .section-heading span {
+      color: #778ba1;
+      font-size: 11px;
+    }
+
+    .flow-list,
+    .layer-list { display: grid; gap: 6px; }
+
+    .flow-button {
+      width: 100%;
+      min-height: 38px;
+      display: grid;
+      grid-template-columns: 8px 1fr auto;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 10px;
+      text-align: left;
+      color: #c9d4df;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .flow-button:hover { background: #172638; border-color: #31445a; }
+
+    .flow-button.is-active {
+      color: white;
+      background: #202f40;
+      border-color: #53677d;
+      box-shadow: inset 3px 0 0 var(--orange);
+    }
+
+    .flow-button i {
+      width: 7px;
+      height: 7px;
+      background: var(--flow-color, #8aa0b7);
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--flow-color, #8aa0b7) 20%, transparent);
+    }
+
+    .flow-button span { font-weight: 500; }
+
+    .flow-button small {
+      color: #8294a8;
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .layer-toggle,
+    .display-toggle {
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 5px 7px;
+      color: #c0ccd8;
+      border-radius: 4px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .layer-toggle:hover,
+    .display-toggle:hover { background: #172638; }
+
+    .layer-toggle input,
+    .display-toggle input {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--orange);
+    }
+
+    .layer-toggle i {
+      width: 9px;
+      height: 9px;
+      background: var(--layer-color);
+      border-radius: 2px;
+    }
+
+    .legend { display: grid; gap: 9px; }
+
+    .legend-row {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      align-items: center;
+      gap: 8px;
+      color: #9fb0c2;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .legend-line {
+      height: 2px;
+      background: var(--legend-color);
+      position: relative;
+    }
+
+    .legend-line::after {
+      content: "";
+      position: absolute;
+      top: -3px;
+      right: -1px;
+      border-top: 4px solid transparent;
+      border-bottom: 4px solid transparent;
+      border-left: 6px solid var(--legend-color);
+    }
+
+    .legend-line.dashed {
+      height: 0;
+      background: none;
+      border-top: 2px dashed var(--legend-color);
+    }
+
+    .prototype-note {
+      margin-top: 21px;
+      padding: 11px;
+      color: #aebdca;
+      background: #172434;
+      border: 1px solid #314256;
+      border-left: 3px solid var(--orange);
+      border-radius: 4px;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .stage {
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: 52px minmax(0, 1fr);
+      background: #09121d;
+    }
+
+    .canvas-toolbar,
+    .statusbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      color: #9eb0c2;
+      background: #101a27;
+      border-bottom: 1px solid #29384a;
+    }
+
+    .canvas-toolbar { justify-content: space-between; }
+
+    .toolbar-group { display: flex; align-items: center; gap: 6px; }
+
+    .live-overview { gap: 14px; min-width: 0; }
+
+    .health-summary {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .health-stat {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 28px;
+      padding: 0 9px;
+      color: #aebdcb;
+      background: #152235;
+      border: 1px solid #2d4055;
+      border-radius: 4px;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .health-stat::before,
+    .health-key::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      flex: 0 0 auto;
+      background: var(--status-color, #8294a8);
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--status-color, #8294a8) 16%, transparent);
+    }
+
+    .health-stat strong { color: #f2f6fa; font-size: 11px; font-weight: 500; font-variant-numeric: tabular-nums; }
+    .health-stat.healthy { --status-color: var(--green); }
+    .health-stat.active { --status-color: var(--blue); }
+    .health-stat.degraded { --status-color: var(--orange); }
+    .health-stat.unavailable { --status-color: var(--red); }
+
+    .simulated-time {
+      color: #70869b;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .canvas-toolbar .icon-button {
+      height: 30px;
+      min-width: 31px;
+      padding: 0 8px;
+      font-weight: 500;
+    }
+
+    .zoom-readout {
+      min-width: 48px;
+      color: #b9c6d2;
+      font-size: 11px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .view-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: #d3dde6;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .02em;
+    }
+
+    .view-label::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px rgba(98, 201, 141, .13);
+    }
+
+    #viewport {
+      min-height: 0;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 10% 12%, rgba(64, 185, 212, .05), transparent 24%),
+        radial-gradient(circle at 84% 18%, rgba(255, 153, 0, .045), transparent 22%),
+        #09121d;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    #viewport.is-panning { cursor: grabbing; }
+
+    #diagram {
+      width: 100%;
+      height: 100%;
+      display: block;
+      user-select: none;
+    }
+
+    .live-popover {
+      position: fixed;
+      z-index: 80;
+      width: min(390px, calc(100vw - 32px));
+      padding: 0;
+      color: #e9eff5;
+      background: rgba(17, 28, 43, .98);
+      border: 1px solid #53677e;
+      border-top: 3px solid var(--popover-color, var(--green));
+      border-radius: 7px;
+      box-shadow: 0 20px 55px rgba(0, 0, 0, .48);
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity .1s ease, transform .1s ease;
+    }
+
+    .live-popover.is-visible { opacity: 1; transform: translateY(0); }
+
+    .popover-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 15px 11px;
+      border-bottom: 1px solid #2b3c50;
+    }
+
+    .popover-eyebrow {
+      margin-bottom: 4px;
+      color: #8398ac;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .popover-title { margin: 0; color: #fff; font-size: 16px; font-weight: 500; line-height: 1.25; }
+
+    .popover-health {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--popover-color, var(--green));
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .popover-health::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      background: var(--popover-color, var(--green));
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--popover-color, var(--green)) 16%, transparent);
+    }
+
+    .popover-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      padding: 11px 15px;
+      background: #132033;
+      border-bottom: 1px solid #2b3c50;
+    }
+
+    .popover-metric span { display: block; color: #71879c; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .07em; }
+    .popover-metric strong { display: block; margin-top: 4px; color: #dce5ed; font-size: 13px; font-weight: 500; line-height: 1.35; }
+
+    .workloads { padding: 12px 15px 14px; }
+    .workloads-heading { margin-bottom: 8px; color: #8ca0b3; font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }
+    .workload + .workload { margin-top: 11px; padding-top: 11px; border-top: 1px solid #293a4e; }
+    .workload-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+    .workload-plugin { min-width: 0; overflow: hidden; color: #f2f6fa; font-size: 13px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+    .workload-progress { color: #9eb0c1; font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .workload-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 5px; color: #8095a9; font-size: 11px; }
+    .progress-track { height: 4px; margin-top: 7px; overflow: hidden; background: #25364a; border-radius: 999px; }
+    .progress-track i { display: block; height: 100%; width: var(--progress); background: var(--blue); border-radius: inherit; }
+    .empty-workload { padding: 2px 0; color: #8396a9; font-size: 11px; line-height: 1.5; }
+    .simulation-note { padding: 9px 15px; color: #8e826d; background: rgba(255, 153, 0, .06); border-top: 1px solid rgba(255, 153, 0, .16); font-size: 11px; line-height: 1.4; }
+
+    .statusbar {
+      justify-content: space-between;
+      border-top: 1px solid #29384a;
+      border-bottom: 0;
+      font-size: 11px;
+    }
+
+    .statusbar strong { color: #e4ebf2; }
+
+    .statusbar .hint { color: #71859a; }
+
+    /* SVG architecture */
+    .grid-line { stroke: #162438; stroke-width: 1; }
+
+    .boundary {
+      fill: rgba(13, 24, 37, .84);
+      stroke: #516277;
+      stroke-width: 2;
+      rx: 12;
+    }
+
+    .boundary.host { fill: rgba(13, 25, 39, .92); stroke: #687b90; }
+    .boundary.external { fill: rgba(17, 32, 43, .68); stroke: #3f8063; stroke-dasharray: 8 6; }
+    .boundary.sandbox { fill: rgba(51, 27, 22, .55); stroke: #c16b43; stroke-dasharray: 9 6; }
+
+    .zone rect {
+      fill: rgba(22, 35, 52, .58);
+      stroke: #33485e;
+      stroke-width: 1.4;
+      rx: 8;
+    }
+
+    .zone[data-layer="interface"] rect { stroke: #417c95; }
+    .zone[data-layer="control"] rect { stroke: #98681c; }
+    .zone[data-layer="execution"] rect { stroke: #735ab1; }
+    .zone[data-layer="data"] rect { stroke: #2f8278; }
+
+    .boundary-title {
+      fill: #e8eef5;
+      font-size: 17px;
+      font-weight: 500;
+      letter-spacing: .01em;
+    }
+
+    .boundary-meta {
+      fill: #7890a7;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .zone-title {
+      fill: #91a5b8;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+
+    .zone-note { fill: #71879c; font-size: 11px; }
+
+    .architecture-title {
+      fill: #f2f6fa;
+      font-size: 28px;
+      font-weight: 500;
+      letter-spacing: -.02em;
+    }
+
+    .architecture-subtitle { fill: #879caf; font-size: 13px; }
+
+    .truth-banner rect {
+      fill: rgba(17, 66, 67, .42);
+      stroke: #388d82;
+      stroke-width: 1.2;
+      rx: 5;
+    }
+
+    .truth-banner text { fill: #9ee5d8; font-size: 11px; font-weight: 500; }
+
+    .service {
+      cursor: pointer;
+      outline: none;
+      transition: opacity .16s, filter .16s;
+    }
+
+    .service .card {
+      fill: #152235;
+      stroke: #4a5c70;
+      stroke-width: 1.5;
+      rx: 7;
+      filter: none;
+      transition: stroke .16s, stroke-width .16s, fill .16s;
+    }
+
+    .service:hover .card,
+    .service:focus-visible .card { stroke: #a9bbcd; stroke-width: 2; fill: #1b2b40; }
+
+    .service.is-selected .card {
+      stroke: var(--orange);
+      stroke-width: 2.6;
+      fill: #202e3f;
+      filter: url(#selected-glow);
+    }
+
+    .service.is-flow-node .card { stroke: var(--flow-accent, #8fb4ff); stroke-width: 2.2; }
+
+    .service.is-live-node .card,
+    .service.is-live-node .engine-card { stroke: var(--blue); stroke-width: 2.2; }
+
+    .service[data-health="degraded"] .card { stroke: var(--orange); }
+    .service[data-health="unavailable"] .card { stroke: var(--red); }
+
+    .live-health-ring { fill: color-mix(in srgb, var(--node-health, #8294a8) 20%, #101b2a); stroke: var(--node-health, #8294a8); stroke-width: 1; }
+    .live-health-dot { fill: var(--node-health, #8294a8); }
+    .live-count-ring { fill: #185a95; stroke: #82baff; stroke-width: 1; }
+    .live-count-ring.is-waiting { fill: #4b2d72; stroke: #c2a4ff; }
+    .live-count-text { fill: #fff; font-size: 11px; font-weight: 500; text-anchor: middle; dominant-baseline: central; }
+
+    .service.is-dimmed { opacity: .18; filter: saturate(.5); }
+    .service.is-hidden, .zone.is-hidden, .edge-group.is-hidden { display: none; }
+
+    .icon-tile { rx: 5; }
+    .icon-text { fill: white; font-size: 12px; font-weight: 500; text-anchor: middle; }
+    .node-title { fill: #f0f4f8; font-size: 14px; font-weight: 500; }
+    .node-subtitle { fill: #91a4b6; font-size: 11px; font-weight: 400; }
+    .node-badge-bg { fill: #22354a; stroke: #435971; stroke-width: .8; rx: 3; }
+    .node-badge-text { fill: #b5c7d7; font-size: 11px; font-weight: 500; letter-spacing: .01em; text-anchor: middle; }
+
+    .broker-shell {
+      fill: rgba(40, 29, 57, .66);
+      stroke: #70589a;
+      stroke-width: 1.5;
+      rx: 8;
+    }
+
+    .broker-title { fill: #e5daf8; font-size: 14px; font-weight: 500; }
+    .broker-note { fill: #ad9ec4; font-size: 11px; }
+
+    .queue-node .card { fill: #332646; stroke: #8667b1; }
+    .queue-node .node-title { font-size: 11px; }
+    .queue-node.dlq .card { fill: #42232d; stroke: #b75866; }
+    .queue-node.dlq .node-title { fill: #ffc2c7; }
+
+    .engine-card { fill: #222c3b; stroke: #657890; stroke-width: 1.4; stroke-dasharray: 7 5; rx: 6; }
+    .engine-title { fill: #e0e8f0; font-size: 14px; font-weight: 500; }
+    .engine-copy { fill: #91a4b6; font-size: 11px; font-weight: 400; }
+
+    .edge {
+      fill: none;
+      stroke-width: 2.6;
+      stroke-opacity: .13;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      marker-end: none !important;
+      transition: stroke-opacity .16s, stroke-width .16s, filter .16s;
+    }
+
+    marker path {
+      fill-opacity: .34;
+      stroke-width: .65;
+      stroke-opacity: 1;
+      paint-order: stroke fill;
+    }
+
+    #arrow-neutral path { stroke: #8c9caf; }
+    #arrow-cyan path { stroke: #40b9d4; }
+    #arrow-orange path { stroke: #ff9900; }
+    #arrow-purple path { stroke: #b38bfa; }
+    #arrow-teal path { stroke: #36c5b0; }
+    #arrow-green path { stroke: #62c98d; }
+    #arrow-red path { stroke: #ff6b73; }
+
+    .edge.request { stroke: var(--cyan); marker-end: url(#arrow-cyan); }
+    .edge.control { stroke: var(--orange); marker-end: url(#arrow-orange); }
+    .edge.queue { stroke: var(--purple); marker-end: url(#arrow-purple); }
+    .edge.data { stroke: var(--teal); marker-end: url(#arrow-teal); }
+    .edge.external { stroke: var(--green); marker-end: url(#arrow-green); }
+    .edge.privileged { stroke: var(--red); marker-end: url(#arrow-red); stroke-dasharray: none; }
+    .edge.dependency { stroke: #8c9caf; marker-end: none; stroke-dasharray: none; stroke-opacity: .20; stroke-width: 1.6; }
+    .edge.recovery { stroke: var(--red); marker-end: url(#arrow-red); stroke-dasharray: none; }
+
+    .edge-wire {
+      fill: none;
+      stroke-width: 4;
+      stroke-opacity: 0;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      pointer-events: none;
+      transition: stroke-opacity .14s ease;
+    }
+
+    .edge-wire.request { stroke: var(--cyan); }
+    .edge-wire.control { stroke: var(--orange); }
+    .edge-wire.queue { stroke: var(--purple); }
+    .edge-wire.data { stroke: var(--teal); }
+    .edge-wire.external { stroke: var(--green); }
+    .edge-wire.privileged,
+    .edge-wire.recovery { stroke: var(--red); }
+
+    .edge-group[data-link-health="healthy"] .edge,
+    .edge-group[data-link-health="healthy"] .edge-wire { stroke: var(--green); }
+    .edge-group[data-link-health="unhealthy"] .edge,
+    .edge-group[data-link-health="unhealthy"] .edge-wire { stroke: var(--red); }
+    .edge-group[data-link-health="unknown"] .edge,
+    .edge-group[data-link-health="unknown"] .edge-wire { stroke: #8294a8; }
+
+    .edge-group.is-dimmed { opacity: .08; }
+    .edge-group.is-related .edge,
+    .edge-group.is-active .edge {
+      stroke-width: 2.6;
+    }
+
+    .edge-group.is-related .edge {
+      stroke-opacity: .84;
+      filter: url(#edge-glow);
+    }
+
+    .edge-group.is-active .edge { stroke-opacity: .52; filter: none; }
+    .edge-group.is-active .edge.dependency { stroke-width: 1.6; stroke-opacity: .20; }
+
+    .edge-group.is-active .edge-wire,
+    .edge-group.is-related .edge-wire { stroke-opacity: 1; }
+
+    .edge-label {
+      fill: #aebdcc;
+      stroke: #09121d;
+      stroke-width: 5px;
+      paint-order: stroke;
+      stroke-linejoin: round;
+      font-size: 11px;
+      font-weight: 500;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .12s ease;
+    }
+
+    .edge-group.is-related .edge-label { opacity: 1; }
+
+    body.hide-labels .edge-label { display: none; }
+    body.is-navigating .edge,
+    body.is-navigating .edge-wire,
+    body.is-navigating .live-health-ring {
+      filter: none !important;
+      transition: none !important;
+    }
+
+    body.is-navigating .edge-wire { display: none; }
+
+    body.is-navigating .service,
+    body.is-navigating .service .card,
+    body.is-navigating .service .engine-card {
+      transition: none !important;
+      filter: none !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { scroll-behavior: auto !important; }
+    }
+
+    @media (max-width: 1100px) {
+      .health-stat span { display: none; }
+      .live-overview { gap: 8px; }
+      .topbar { grid-template-columns: minmax(330px, 1fr) minmax(240px, 360px) auto; }
+    }
+
+    @media (max-width: 600px) {
+      .stage { grid-template-rows: 80px minmax(0, 1fr); }
+      .canvas-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: center;
+        gap: 6px;
+        padding: 6px 8px;
+      }
+      .live-overview {
+        width: 100%;
+        justify-content: center;
+        gap: 6px;
+      }
+      .view-label {
+        width: 9px;
+        overflow: hidden;
+        gap: 0;
+        color: transparent;
+        font-size: 0;
+      }
+      .health-summary { gap: 4px; }
+      .health-stat {
+        min-height: 26px;
+        gap: 4px;
+        padding: 0 6px;
+      }
+      .simulated-updated { display: none; }
+      .canvas-toolbar > .toolbar-group:last-child {
+        width: 100%;
+        justify-content: center;
+      }
+      .canvas-toolbar .icon-button { height: 28px; }
+    }
+
+    /* Detail panel */
+    .details-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #2b3b4d;
+    }
+
+    .details-eyebrow {
+      color: var(--orange-soft);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .details h2 {
+      margin: 5px 0 0;
+      color: white;
+      font-size: 19px;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+
+    .details .close-detail {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      color: #9fb0c1;
+      background: transparent;
+      border: 1px solid #34475b;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .details .close-detail:hover { color: white; border-color: #72869b; }
+
+    .detail-summary {
+      margin: 14px 0 0;
+      color: #bdc9d4;
+      line-height: 1.55;
+    }
+
+    .detail-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 13px;
+    }
+
+    .detail-chip {
+      padding: 4px 7px;
+      color: #b7c9d9;
+      background: #1c2b3c;
+      border: 1px solid #374b60;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .detail-grid {
+      display: grid;
+      gap: 0;
+      margin-top: 18px;
+      border-top: 1px solid #2b3b4d;
+    }
+
+    .detail-row {
+      display: grid;
+      gap: 5px;
+      padding: 12px 0;
+      border-bottom: 1px solid #2b3b4d;
+    }
+
+    .detail-row dt {
+      color: #7f94a9;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .detail-row dd {
+      margin: 0;
+      color: #d1dae3;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .empty-detail {
+      padding: 20px 4px;
+      color: #90a2b4;
+      line-height: 1.55;
+    }
+
+    .empty-detail strong { display: block; margin-bottom: 6px; color: #d9e1e8; }
+
+    .principles {
+      display: grid;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .principle {
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: 8px;
+      align-items: start;
+      padding: 9px;
+      background: #172536;
+      border: 1px solid #2e4256;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    .principle b {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      color: #ffcf83;
+      background: rgba(255, 153, 0, .12);
+      border-radius: 3px;
+    }
+
+    .principle span { color: #a9b8c7; line-height: 1.4; }
+
+    @media (max-width: 1250px) {
+      .topbar { grid-template-columns: minmax(300px, 1fr) minmax(250px, 390px) auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <main class="stage">
+      <div class="canvas-toolbar">
+        <div class="toolbar-group live-overview">
+          <span class="view-label">System operational</span>
+          <div class="health-summary" aria-label="Simulated component health summary">
+            <span class="health-stat" style="--status-color:#62c98d"><strong id="healthy-count">0</strong><span>healthy</span></span>
+            <span class="health-stat" style="--status-color:#66a6ff"><strong id="active-count">0</strong><span>plugins running</span></span>
+            <span class="health-stat" style="--status-color:#b38bfa"><strong id="waiting-count">0</strong><span>waiting</span></span>
+            <span class="health-stat" style="--status-color:#ffb84d"><strong id="degraded-count">0</strong><span>degraded</span></span>
+            <span class="health-stat" style="--status-color:#ff6b73"><strong id="unavailable-count">0</strong><span>unavailable</span></span>
+          </div>
+          <span class="simulated-updated">Simulated snapshot</span>
+        </div>
+        <div class="toolbar-group">
+          <button class="icon-button" id="zoom-out" type="button" title="Zoom out" aria-label="Zoom out">−</button>
+          <span class="zoom-readout" id="zoom-readout">100%</span>
+          <button class="icon-button" id="zoom-in" type="button" title="Zoom in" aria-label="Zoom in">+</button>
+          <button class="icon-button" id="fit-view" type="button" title="Fit diagram">Fit</button>
+          <button class="icon-button" id="reset-view" type="button" title="Reset diagram view">Reset</button>
+        </div>
+      </div>
+
+      <div id="viewport">
+        <svg id="diagram" viewBox="0 60 1800 1060" role="img" aria-labelledby="svg-title svg-desc">
+          <title id="svg-title">Live Squadrone architecture</title>
+          <desc id="svg-desc">A simulated live view of local Docker Compose component health and active plugin workflows. Hover a component for details.</desc>
+          <defs>
+            <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
+              <path d="M28 0H0V28" fill="none" class="grid-line"/>
+            </pattern>
+            <filter id="card-shadow" x="-20%" y="-30%" width="140%" height="170%">
+              <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#000" flood-opacity=".24"/>
+            </filter>
+            <filter id="selected-glow" x="-30%" y="-40%" width="160%" height="190%">
+              <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#ff9900" flood-opacity=".38"/>
+            </filter>
+            <filter id="edge-glow" x="-40%" y="-40%" width="180%" height="180%">
+              <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#d7e8ff" flood-opacity=".48"/>
+            </filter>
+            <marker id="arrow-neutral" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="#8c9caf"/></marker>
+            <marker id="arrow-cyan" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#40b9d4"/></marker>
+            <marker id="arrow-orange" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#ff9900"/></marker>
+            <marker id="arrow-purple" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#b38bfa"/></marker>
+            <marker id="arrow-teal" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#36c5b0"/></marker>
+            <marker id="arrow-green" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#62c98d"/></marker>
+            <marker id="arrow-red" markerUnits="userSpaceOnUse" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#ff6b73"/></marker>
+          </defs>
+
+          <rect width="1800" height="1120" fill="url(#grid)"/>
+
+          <rect class="boundary host" x="190" y="88" width="1260" height="988"/>
+          <text class="boundary-title" x="214" y="118">Local Docker Desktop host</text>
+          <text class="boundary-meta" x="1420" y="130" text-anchor="end">Docker Compose · private network</text>
+
+          <g class="zone" data-layer="interface">
+            <rect x="220" y="138" width="1200" height="120"/>
+            <text class="zone-title" x="238" y="160">Interfaces</text>
+            <text class="zone-note" x="1400" y="160" text-anchor="end">same /api/v1 contract · no workflow ownership</text>
+          </g>
+          <g class="zone" data-layer="control">
+            <rect x="220" y="282" width="1200" height="236"/>
+            <text class="zone-title" x="238" y="304">Control plane</text>
+            <text class="zone-note" x="1400" y="304" text-anchor="end">commands · dependencies · leases · retries · concurrency</text>
+          </g>
+          <g class="zone" data-layer="execution">
+            <rect x="220" y="542" width="1200" height="264"/>
+            <text class="zone-title" x="238" y="564">Execution plane</text>
+            <text class="zone-note" x="1400" y="564" text-anchor="end">resource-oriented workers · independently scalable</text>
+          </g>
+          <g class="zone" data-layer="data">
+            <rect x="220" y="830" width="1200" height="212"/>
+            <text class="zone-title" x="238" y="852">Data plane</text>
+            <text class="zone-note" x="1400" y="852" text-anchor="end">authoritative structured state + immutable bytes</text>
+          </g>
+
+          <rect class="boundary external" x="1480" y="88" width="286" height="408"/>
+          <text class="boundary-title" x="1501" y="118">External boundary</text>
+
+          <g class="zone" data-layer="sandbox">
+            <rect class="boundary sandbox" x="1480" y="534" width="286" height="410"/>
+            <text class="boundary-title" x="1501" y="566">Attempt sandbox</text>
+            <text class="zone-note" x="1501" y="585">created and removed per verification</text>
+          </g>
+
+          <g class="truth-banner" transform="translate(1480 968)">
+            <rect width="286" height="74"/>
+            <text x="16" y="25">PostgreSQL is authoritative.</text>
+            <text x="16" y="45">RabbitMQ transports task references.</text>
+            <text x="16" y="62">Artifacts own immutable evidence bytes.</text>
+          </g>
+
+          <!-- Edges are intentionally behind cards. -->
+          <g class="edge-group" data-edge="browser-frontend" data-from="browser" data-to="frontend" data-flows="scan candidate verify report submit">
+            <path class="edge request" d="M164 181H312"/><text class="edge-label" x="216" y="172">HTTPS</text>
+          </g>
+          <g class="edge-group" data-edge="cli-api" data-from="cli" data-to="api" data-flows="scan candidate verify report submit">
+            <path class="edge request" d="M164 276H196V218H692"/><text class="edge-label" x="207" y="209">/api/v1</text>
+          </g>
+          <g class="edge-group" data-edge="frontend-api" data-from="frontend" data-to="api" data-flows="scan candidate verify report submit">
+            <path class="edge request" d="M512 181H692"/><text class="edge-label" x="578" y="172">REST · SSE</text>
+          </g>
+          <g class="edge-group" data-edge="api-scheduler" data-from="api" data-to="scheduler" data-flows="scan candidate verify report submit recovery">
+            <path class="edge control" d="M787 223V315H365V344"/><text class="edge-label" x="548" y="306">accepted task + outbox</text>
+          </g>
+          <g class="edge-group" data-edge="api-postgres" data-from="api" data-to="postgres" data-flows="scan candidate verify report submit">
+            <path class="edge data" d="M850 223V268H205V920H322"/><text class="edge-label" x="213" y="809">queries · approvals · events</text>
+          </g>
+          <g class="edge-group" data-edge="scheduler-postgres" data-from="scheduler" data-to="postgres" data-flows="scan candidate verify report submit recovery">
+            <path class="edge data" d="M365 424V880"/><text class="edge-label" x="375" y="830">leases · retry_at</text>
+          </g>
+          <g class="edge-group" data-edge="scheduler-qscan" data-from="scheduler" data-to="queue-scan" data-flows="scan recovery">
+            <path class="edge queue" d="M460 374H530V369H548"/>
+          </g>
+          <g class="edge-group" data-edge="scheduler-qcandidate" data-from="scheduler" data-to="queue-candidate" data-flows="candidate recovery">
+            <path class="edge queue" d="M460 384H664V369H688"/>
+          </g>
+          <g class="edge-group" data-edge="scheduler-qsandbox" data-from="scheduler" data-to="queue-sandbox" data-flows="verify recovery">
+            <path class="edge queue" d="M460 394H804V369H828"/>
+          </g>
+          <g class="edge-group" data-edge="scheduler-qreport" data-from="scheduler" data-to="queue-report" data-flows="report recovery">
+            <path class="edge queue" d="M460 404H944V369H968"/>
+          </g>
+          <g class="edge-group" data-edge="scheduler-qsubmission" data-from="scheduler" data-to="queue-submission" data-flows="submit recovery">
+            <path class="edge queue" d="M460 414H1084V369H1108"/>
+          </g>
+          <g class="edge-group" data-edge="broker-dlq" data-from="rabbitmq" data-to="queue-deadletter" data-flows="recovery">
+            <path class="edge recovery" d="M1218 441H1297V390"/><text class="edge-label" x="1228" y="432">diagnostic only</text>
+          </g>
+
+          <g class="edge-group" data-edge="qscan-scan" data-from="queue-scan" data-to="scan-worker" data-flows="scan recovery">
+            <path class="edge queue" d="M603 390V530H345V590"/><text class="edge-label" x="478" y="523">task ref</text>
+          </g>
+          <g class="edge-group" data-edge="qcandidate-candidate" data-from="queue-candidate" data-to="candidate-worker" data-flows="candidate recovery">
+            <path class="edge queue" d="M743 390V530H570V590"/>
+          </g>
+          <g class="edge-group" data-edge="qsandbox-sandbox" data-from="queue-sandbox" data-to="sandbox-worker" data-flows="verify recovery">
+            <path class="edge queue" d="M883 390V530H795V590"/>
+          </g>
+          <g class="edge-group" data-edge="qreport-report" data-from="queue-report" data-to="report-worker" data-flows="report recovery">
+            <path class="edge queue" d="M1023 390V590"/>
+          </g>
+          <g class="edge-group" data-edge="qsubmission-submission" data-from="queue-submission" data-to="submission-worker" data-flows="submit recovery">
+            <path class="edge queue" d="M1163 390V530H1245V590"/>
+          </g>
+
+          <g class="edge-group" data-edge="scan-engine" data-from="scan-worker" data-to="engine" data-flows="scan">
+            <path class="edge dependency" d="M345 666V715"/>
+          </g>
+          <g class="edge-group" data-edge="candidate-engine" data-from="candidate-worker" data-to="engine" data-flows="candidate">
+            <path class="edge dependency" d="M570 666V715"/>
+          </g>
+          <g class="edge-group" data-edge="sandbox-engine" data-from="sandbox-worker" data-to="engine" data-flows="verify">
+            <path class="edge dependency" d="M795 666V715"/>
+          </g>
+
+          <g class="edge-group" data-edge="scan-postgres" data-from="scan-worker" data-to="postgres" data-flows="scan recovery">
+            <path class="edge data" d="M315 666V850H340V880"/>
+          </g>
+          <g class="edge-group" data-edge="candidate-postgres" data-from="candidate-worker" data-to="postgres" data-flows="candidate recovery">
+            <path class="edge data" d="M540 666V820H432V880"/>
+          </g>
+          <g class="edge-group" data-edge="sandbox-postgres" data-from="sandbox-worker" data-to="postgres" data-flows="verify recovery">
+            <path class="edge data" d="M765 666V812H474V880"/>
+          </g>
+          <g class="edge-group" data-edge="report-postgres" data-from="report-worker" data-to="postgres" data-flows="report recovery">
+            <path class="edge data" d="M990 666V804H516V880"/>
+          </g>
+          <g class="edge-group" data-edge="submission-postgres" data-from="submission-worker" data-to="postgres" data-flows="submit recovery">
+            <path class="edge data" d="M1215 666V796H558V880"/>
+          </g>
+
+          <g class="edge-group" data-edge="scan-artifacts" data-from="scan-worker" data-to="artifacts" data-flows="scan">
+            <path class="edge data" d="M375 666V790H752V880"/>
+          </g>
+          <g class="edge-group" data-edge="candidate-artifacts" data-from="candidate-worker" data-to="artifacts" data-flows="candidate">
+            <path class="edge data" d="M600 666V780H782V880"/>
+          </g>
+          <g class="edge-group" data-edge="sandbox-artifacts" data-from="sandbox-worker" data-to="artifacts" data-flows="verify">
+            <path class="edge data" d="M825 666V880"/>
+          </g>
+          <g class="edge-group" data-edge="report-artifacts" data-from="report-worker" data-to="artifacts" data-flows="report">
+            <path class="edge data" d="M1050 666V770H868V880"/>
+          </g>
+          <g class="edge-group" data-edge="submission-artifacts" data-from="submission-worker" data-to="artifacts" data-flows="submit">
+            <path class="edge data" d="M1275 666V780H900V880"/>
+          </g>
+
+          <g class="edge-group" data-edge="catalogue-scan" data-from="catalogue" data-to="scan-worker" data-flows="scan">
+            <path class="edge external" d="M1500 188H1458V526H410V590"/><text class="edge-label" x="1280" y="517">scope · version · archive</text>
+          </g>
+          <g class="edge-group" data-edge="catalogue-api" data-from="catalogue" data-to="api" data-flows="scan verify report">
+            <path class="edge external" d="M1500 178H1468V116H850V145"/><text class="edge-label" x="1192" y="107">fresh eligibility</text>
+          </g>
+          <g class="edge-group" data-edge="llm-scan" data-from="llm" data-to="scan-worker" data-flows="scan">
+            <path class="edge external" d="M1500 310H1442V518H390V590"/>
+          </g>
+          <g class="edge-group" data-edge="llm-candidate" data-from="llm" data-to="candidate-worker" data-flows="candidate">
+            <path class="edge external" d="M1500 320H1432V510H615V590"/><text class="edge-label" x="1248" y="501">model gateway</text>
+          </g>
+          <g class="edge-group" data-edge="submission-patchstack" data-from="submission-worker" data-to="patchstack" data-flows="submit">
+            <path class="edge external" d="M1340 628H1466V430H1500"/><text class="edge-label" x="1363" y="618">approved report hash</text>
+          </g>
+
+          <g class="edge-group" data-edge="sandbox-attempt" data-from="sandbox-worker" data-to="ingress" data-flows="verify">
+            <path class="edge privileged" d="M890 628H1466V634H1518"/><text class="edge-label" x="1284" y="619">Docker control · only privileged worker</text>
+          </g>
+          <g class="edge-group" data-edge="ingress-wordpress" data-from="ingress" data-to="wordpress" data-flows="verify">
+            <path class="edge request" d="M1623 684V718"/><text class="edge-label" x="1634" y="705">PoC trace</text>
+          </g>
+          <g class="edge-group" data-edge="wordpress-mariadb" data-from="wordpress" data-to="mariadb" data-flows="verify">
+            <path class="edge data" d="M1623 788V824"/>
+          </g>
+
+          <g class="edge-group" data-edge="recovery-loop" data-from="postgres" data-to="scheduler" data-flows="recovery">
+            <path class="edge recovery" d="M450 880V836H191V404H270"/><text class="edge-label" x="198" y="438">expired lease → ready → republish</text>
+          </g>
+
+          <!-- Client nodes -->
+          <g class="service" data-node="browser" data-layer="interface" transform="translate(20 145)" tabindex="0" role="button" aria-label="Browser">
+            <rect class="card" width="144" height="72"/>
+            <rect class="icon-tile" x="12" y="14" width="40" height="40" fill="#287a96"/>
+            <text class="icon-text" x="32" y="39">WEB</text>
+            <text class="node-title" x="62" y="29">Browser</text><text class="node-subtitle" x="62" y="46">research UI</text>
+          </g>
+          <g class="service" data-node="cli" data-layer="interface" transform="translate(20 240)" tabindex="0" role="button" aria-label="CLI">
+            <rect class="card" width="144" height="72"/>
+            <rect class="icon-tile" x="12" y="14" width="40" height="40" fill="#287a96"/>
+            <text class="icon-text" x="32" y="39">&gt;_</text>
+            <text class="node-title" x="62" y="29">CLI</text><text class="node-subtitle" x="62" y="46">API client</text>
+          </g>
+
+          <!-- Interface nodes -->
+          <g class="service" data-node="frontend" data-layer="interface" transform="translate(312 145)" tabindex="0" role="button" aria-label="Frontend">
+            <rect class="card" width="200" height="72"/>
+            <rect class="icon-tile" x="12" y="14" width="42" height="42" fill="#287a96"/>
+            <text class="icon-text" x="33" y="40">UI</text>
+            <text class="node-title" x="66" y="28">Frontend</text><text class="node-subtitle" x="66" y="45">status · review · approval</text>
+            <rect class="node-badge-bg" x="66" y="53" width="100" height="16"/><text class="node-badge-text" x="116" y="65">frontend image</text>
+          </g>
+          <g class="service" data-node="api" data-layer="control" transform="translate(692 145)" tabindex="0" role="button" aria-label="API">
+            <rect class="card" width="190" height="78"/>
+            <rect class="icon-tile" x="12" y="17" width="42" height="42" fill="#c47600"/>
+            <text class="icon-text" x="33" y="43">API</text>
+            <text class="node-title" x="66" y="29">REST API + events</text><text class="node-subtitle" x="66" y="46">commands · queries</text>
+            <rect class="node-badge-bg" x="66" y="56" width="104" height="16"/><text class="node-badge-text" x="118" y="68">backend image</text>
+          </g>
+
+          <!-- Control plane nodes -->
+          <g class="service" data-node="scheduler" data-layer="control" transform="translate(270 344)" tabindex="0" role="button" aria-label="Scheduler">
+            <rect class="card" width="190" height="80"/>
+            <rect class="icon-tile" x="12" y="18" width="42" height="42" fill="#c47600"/>
+            <text class="icon-text" x="33" y="43">SCH</text>
+            <text class="node-title" x="66" y="29">Scheduler</text><text class="node-subtitle" x="66" y="46">dispatch · leases · retry</text>
+            <rect class="node-badge-bg" x="66" y="57" width="104" height="16"/><text class="node-badge-text" x="118" y="69">backend image</text>
+          </g>
+
+          <g data-layer="control">
+            <rect class="broker-shell" x="500" y="320" width="870" height="170"/>
+            <text class="broker-title" x="520" y="342">RabbitMQ · six physical queues</text>
+            <text class="broker-note" x="1348" y="342" text-anchor="end">delivery only · no retry/delay queues</text>
+          </g>
+          <g class="service queue-node" data-node="queue-scan" data-layer="control" transform="translate(548 348)" tabindex="0" role="button" aria-label="Scan queue"><rect class="card" width="110" height="42"/><text class="node-title" x="55" y="26" text-anchor="middle">scan</text></g>
+          <g class="service queue-node" data-node="queue-candidate" data-layer="control" transform="translate(688 348)" tabindex="0" role="button" aria-label="Candidate queue"><rect class="card" width="110" height="42"/><text class="node-title" x="55" y="26" text-anchor="middle">candidate</text></g>
+          <g class="service queue-node" data-node="queue-sandbox" data-layer="control" transform="translate(828 348)" tabindex="0" role="button" aria-label="Sandbox queue"><rect class="card" width="110" height="42"/><text class="node-title" x="55" y="26" text-anchor="middle">sandbox</text></g>
+          <g class="service queue-node" data-node="queue-report" data-layer="control" transform="translate(968 348)" tabindex="0" role="button" aria-label="Report queue"><rect class="card" width="110" height="42"/><text class="node-title" x="55" y="26" text-anchor="middle">report</text></g>
+          <g class="service queue-node" data-node="queue-submission" data-layer="control" transform="translate(1108 348)" tabindex="0" role="button" aria-label="Submission queue"><rect class="card" width="110" height="42"/><text class="node-title" x="55" y="26" text-anchor="middle">submission</text></g>
+          <g class="service queue-node dlq" data-node="queue-deadletter" data-layer="control" transform="translate(1248 348)" tabindex="0" role="button" aria-label="Dead-letter queue"><rect class="card" width="98" height="42"/><text class="node-title" x="49" y="26" text-anchor="middle">dead-letter</text></g>
+          <g class="service" data-node="rabbitmq" data-layer="control" transform="translate(548 414)" tabindex="0" role="button" aria-label="RabbitMQ broker">
+            <rect class="card" width="670" height="54"/>
+            <rect class="icon-tile" x="12" y="8" width="38" height="38" fill="#6e4c9e"/>
+            <text class="icon-text" x="31" y="32">MQ</text>
+            <text class="node-title" x="62" y="23">Durable broker transport</text><text class="node-subtitle" x="62" y="39">task references · acknowledgements · redelivery</text>
+          </g>
+
+          <!-- Execution workers -->
+          <g class="service" data-node="scan-worker" data-layer="execution" transform="translate(250 590)" tabindex="0" role="button" aria-label="Scan worker">
+            <rect class="card" width="190" height="76"/><rect class="icon-tile" x="12" y="17" width="42" height="42" fill="#7354b1"/><text class="icon-text" x="33" y="42">SCAN</text>
+            <text class="node-title" x="66" y="29">Scan worker</text><text class="node-subtitle" x="66" y="46">source · triage</text><rect class="node-badge-bg" x="66" y="55" width="96" height="16"/><text class="node-badge-text" x="114" y="67">worker image</text>
+          </g>
+          <g class="service" data-node="candidate-worker" data-layer="execution" transform="translate(475 590)" tabindex="0" role="button" aria-label="Candidate worker">
+            <rect class="card" width="190" height="76"/><rect class="icon-tile" x="12" y="17" width="42" height="42" fill="#7354b1"/><text class="icon-text" x="33" y="42">CND</text>
+            <text class="node-title" x="66" y="29">Candidate worker</text><text class="node-subtitle" x="66" y="46">refine · deep dive</text><rect class="node-badge-bg" x="66" y="55" width="96" height="16"/><text class="node-badge-text" x="114" y="67">worker image</text>
+          </g>
+          <g class="service" data-node="sandbox-worker" data-layer="execution" transform="translate(700 590)" tabindex="0" role="button" aria-label="Sandbox worker">
+            <rect class="card" width="190" height="76"/><rect class="icon-tile" x="12" y="17" width="42" height="42" fill="#b75431"/><text class="icon-text" x="33" y="42">SBX</text>
+            <text class="node-title" x="66" y="29">Sandbox worker</text><text class="node-subtitle" x="66" y="46">optional profile</text><rect class="node-badge-bg" x="66" y="55" width="104" height="16"/><text class="node-badge-text" x="118" y="67">sandbox image</text>
+          </g>
+          <g class="service" data-node="report-worker" data-layer="execution" transform="translate(925 590)" tabindex="0" role="button" aria-label="Report worker">
+            <rect class="card" width="190" height="76"/><rect class="icon-tile" x="12" y="17" width="42" height="42" fill="#7354b1"/><text class="icon-text" x="33" y="42">RPT</text>
+            <text class="node-title" x="66" y="29">Report worker</text><text class="node-subtitle" x="66" y="46">evidence · archive</text><rect class="node-badge-bg" x="66" y="55" width="96" height="16"/><text class="node-badge-text" x="114" y="67">report image</text>
+          </g>
+          <g class="service" data-node="submission-worker" data-layer="execution" transform="translate(1150 590)" tabindex="0" role="button" aria-label="Submission worker">
+            <rect class="card" width="200" height="76"/><rect class="icon-tile" x="12" y="17" width="42" height="42" fill="#357f57"/><text class="icon-text" x="33" y="42">SUB</text>
+            <text class="node-title" x="66" y="29">Submission worker</text><text class="node-subtitle" x="66" y="46">explicit approval only</text><rect class="node-badge-bg" x="66" y="55" width="112" height="16"/><text class="node-badge-text" x="122" y="67">submission image</text>
+          </g>
+
+          <g class="service" data-node="engine" data-layer="execution" transform="translate(270 715)" tabindex="0" role="button" aria-label="Squadrone engine package">
+            <rect class="engine-card" width="1070" height="58"/>
+            <rect class="icon-tile" x="14" y="10" width="38" height="38" fill="#4b5f75"/><text class="icon-text" x="33" y="34">PKG</text>
+            <text class="engine-title" x="66" y="24">Squadrone engine · versioned Python package / shared image layer</text>
+            <text class="engine-copy" x="66" y="42">agents · prompts · stages · schemas · model gateway · scope gates · loaded only by scan, candidate, and sandbox workers</text>
+          </g>
+
+          <!-- Data plane -->
+          <g class="service" data-node="postgres" data-layer="data" transform="translate(322 880)" tabindex="0" role="button" aria-label="PostgreSQL">
+            <rect class="card" width="236" height="94"/><rect class="icon-tile" x="14" y="24" width="44" height="44" fill="#167d75"/><text class="icon-text" x="36" y="51">PG</text>
+            <text class="node-title" x="72" y="29">PostgreSQL</text><text class="node-subtitle" x="72" y="46">workflow source of truth</text><text class="node-subtitle" x="72" y="62">tasks · leases · revisions</text><text class="node-subtitle" x="72" y="77">budgets · events</text>
+          </g>
+          <g class="service" data-node="artifacts" data-layer="data" transform="translate(700 880)" tabindex="0" role="button" aria-label="Artifact store">
+            <rect class="card" width="236" height="94"/><rect class="icon-tile" x="14" y="24" width="44" height="44" fill="#167d75"/><text class="icon-text" x="36" y="51">OBJ</text>
+            <text class="node-title" x="72" y="29">Artifact store</text><text class="node-subtitle" x="72" y="46">mounted volume · storage port</text><text class="node-subtitle" x="72" y="62">source · PoCs · screenshots</text><text class="node-subtitle" x="72" y="77">reports · hashes</text>
+          </g>
+          <g class="service" data-node="settings" data-layer="data" transform="translate(1078 880)" tabindex="0" role="button" aria-label="Local settings and pipelines">
+            <rect class="card" width="236" height="94"/><rect class="icon-tile" x="14" y="24" width="44" height="44" fill="#167d75"/><text class="icon-text" x="36" y="51">CFG</text>
+            <text class="node-title" x="72" y="29">Settings + pipelines</text><text class="node-subtitle" x="72" y="46">ignored local bind mount</text><text class="node-subtitle" x="72" y="62">secret-free snapshots</text><text class="node-subtitle" x="72" y="77">bound to each run</text>
+          </g>
+
+          <!-- External systems -->
+          <g class="service" data-node="catalogue" data-layer="external" transform="translate(1500 148)" tabindex="0" role="button" aria-label="WordPress and Patchstack catalogue">
+            <rect class="card" width="246" height="78"/><rect class="icon-tile" x="12" y="18" width="42" height="42" fill="#327a55"/><text class="icon-text" x="33" y="43">CAT</text>
+            <text class="node-title" x="66" y="29">WP.org + Patchstack</text><text class="node-subtitle" x="66" y="46">versions · archives · VDP rules</text><text class="node-subtitle" x="66" y="61">catalogue snapshot</text>
+          </g>
+          <g class="service" data-node="llm" data-layer="external" transform="translate(1500 270)" tabindex="0" role="button" aria-label="LLM providers">
+            <rect class="card" width="246" height="78"/><rect class="icon-tile" x="12" y="18" width="42" height="42" fill="#327a55"/><text class="icon-text" x="33" y="43">LLM</text>
+            <text class="node-title" x="66" y="29">LLM providers</text><text class="node-subtitle" x="66" y="46">through model gateway</text><text class="node-subtitle" x="66" y="61">cost + request reconciliation</text>
+          </g>
+          <g class="service" data-node="patchstack" data-layer="external" transform="translate(1500 392)" tabindex="0" role="button" aria-label="Patchstack submission">
+            <rect class="card" width="246" height="78"/><rect class="icon-tile" x="12" y="18" width="42" height="42" fill="#327a55"/><text class="icon-text" x="33" y="43">PS</text>
+            <text class="node-title" x="66" y="29">Patchstack submission</text><text class="node-subtitle" x="66" y="46">single-use approval</text><text class="node-subtitle" x="66" y="61">outcome_unknown on ambiguity</text>
+          </g>
+
+          <!-- Isolated verification project -->
+          <g class="service" data-node="ingress" data-layer="sandbox" transform="translate(1518 610)" tabindex="0" role="button" aria-label="Sandbox ingress">
+            <rect class="card" width="228" height="74"/><rect class="icon-tile" x="12" y="16" width="42" height="42" fill="#b75431"/><text class="icon-text" x="33" y="41">IN</text>
+            <text class="node-title" x="66" y="28">Ingress / trace proxy</text><text class="node-subtitle" x="66" y="46">bounded trace capture</text>
+          </g>
+          <g class="service" data-node="wordpress" data-layer="sandbox" transform="translate(1518 718)" tabindex="0" role="button" aria-label="Sandbox WordPress">
+            <rect class="card" width="228" height="70"/><rect class="icon-tile" x="12" y="14" width="42" height="42" fill="#b75431"/><text class="icon-text" x="33" y="40">WP</text>
+            <text class="node-title" x="66" y="27">WordPress</text><text class="node-subtitle" x="66" y="44">isolated plugin target</text>
+          </g>
+          <g class="service" data-node="mariadb" data-layer="sandbox" transform="translate(1518 824)" tabindex="0" role="button" aria-label="Sandbox MariaDB">
+            <rect class="card" width="228" height="70"/><rect class="icon-tile" x="12" y="14" width="42" height="42" fill="#b75431"/><text class="icon-text" x="33" y="40">DB</text>
+            <text class="node-title" x="66" y="27">MariaDB</text><text class="node-subtitle" x="66" y="44">ephemeral test state</text>
+          </g>
+
+        </svg>
+        <div class="live-popover" id="live-popover" role="status" aria-live="polite"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const components = {
+        browser: { name: "Browser", layer: "Interface", summary: "The researcher's visual client for queueing work, reviewing evidence, approving reports, and following live progress.", chips: ["client", "HTTPS"], contract: "Calls the same versioned API as the CLI; never invokes the engine directly.", readsWrites: "Reads API projections and SSE events; sends explicit commands and approvals.", scale: "One or more local browser sessions.", trust: "No Docker control, broker credentials, or workflow ownership." },
+        cli: { name: "CLI", layer: "Interface", summary: "A thin automation and scripting client over the versioned API.", chips: ["client", "machine-readable"], contract: "Supports command output plus optional wait/follow mode without importing run_scan().", readsWrites: "Creates commands and consumes durable status/events.", scale: "Any number of local client processes.", trust: "Uses API authorization and receives no engine or database access." },
+        frontend: { name: "Frontend", layer: "Interface", summary: "Static browser application for status, candidate review, evidence, settings, and explicit approval workflows.", chips: ["squadrone-frontend", "published endpoint"], contract: "Presentation only; no long-running task ownership.", readsWrites: "REST queries, command requests, downloads, and reconnectable SSE.", scale: "Single local container; stateless.", trust: "Only frontend and API endpoints are published from Compose." },
+        api: { name: "REST API + events", layer: "Control plane", summary: "The single contract used by Web UI and CLI for commands, queries, evidence downloads, logs, and live progress.", chips: ["squadrone-backend", "/api/v1", "SSE"], contract: "Accepts durable commands; never owns long-running work in process memory.", readsWrites: "Writes command intent and outbox records transactionally; reads PostgreSQL projections and artifact metadata.", scale: "Stateless API replicas are possible, though one is sufficient locally.", trust: "No Docker socket. Secrets are not returned through settings endpoints." },
+        scheduler: { name: "Scheduler / dispatcher", layer: "Control plane", summary: "Turns durable task intent into runnable work while enforcing dependencies, capacity, retry timing, pause/cancel, and lease recovery.", chips: ["squadrone-backend", "outbox", "leases"], contract: "PostgreSQL decides what is ready; scheduler publishes references to the correct work queue.", readsWrites: "Owns the displayed residency of waiting plugin work, claims outbox rows, records acknowledgements, and recovers expired leases.", scale: "One active local scheduler initially; leadership can be added without changing domain semantics.", trust: "Broker and queue observations are transport diagnostics, not duplicate workflow ownership." },
+        rabbitmq: { name: "RabbitMQ", layer: "Control plane", summary: "Durable at-least-once task transport with five primary work queues and one shared diagnostic dead-letter queue.", chips: ["transport", "6 queues", "private"], contract: "Messages carry task references and immutable inputs, never authoritative mutable workflow state.", readsWrites: "Reports delivery diagnostics while the scheduler and workers own waiting or running workload residency.", scale: "One broker for the local Compose stack with a persistent volume.", trust: "No retry/delay queues; retry timing remains in PostgreSQL." },
+        "queue-scan": { name: "scan queue", layer: "Control plane", summary: "Carries reconnaissance, source analysis, triage, and coverage tasks to scan workers.", chips: ["RabbitMQ", "primary queue"], contract: "One stable resource queue, not one queue per stage, plugin, batch, or replica.", readsWrites: "Consumed by scan-worker replicas.", scale: "Worker concurrency is configuration-driven.", trust: "Duplicate delivery must not duplicate durable outcomes." },
+        "queue-candidate": { name: "candidate queue", layer: "Control plane", summary: "Carries manual review, re-review, bounded refinement, and on-demand deep-dive tasks.", chips: ["RabbitMQ", "primary queue"], contract: "Candidate work creates immutable revisions and cannot overwrite concurrent refinement.", readsWrites: "Consumed by candidate-worker replicas.", scale: "Default candidate concurrency is independent of scan concurrency.", trust: "Every request binds to a specific candidate revision." },
+        "queue-sandbox": { name: "sandbox queue", layer: "Control plane", summary: "Carries isolated runtime-verification tasks to the only privileged worker role.", chips: ["RabbitMQ", "primary queue"], contract: "Verification binds to one immutable candidate revision.", readsWrites: "Consumed only by sandbox-worker.", scale: "Conservative concurrency, normally one attempt locally.", trust: "Queue membership alone does not grant Docker control; only the worker image/role does." },
+        "queue-report": { name: "report queue", layer: "Control plane", summary: "Carries report rendering and evidence-archive generation work.", chips: ["RabbitMQ", "primary queue"], contract: "Reports bind to a verified candidate revision and template version.", readsWrites: "Consumed by report-worker replicas.", scale: "Independent from scan and sandbox capacity.", trust: "Report preparation never means external submission." },
+        "queue-submission": { name: "submission queue", layer: "Control plane", summary: "Carries approved external side effects to the isolated submission worker.", chips: ["RabbitMQ", "primary queue"], contract: "A single-use operator approval must be bound to the exact report hash.", readsWrites: "Consumed only by submission-worker.", scale: "One worker initially.", trust: "No automatic retry after an ambiguous external send." },
+        "queue-deadletter": { name: "shared dead-letter queue", layer: "Control plane", summary: "Diagnostic copies of messages that could not be delivered or consumed normally.", chips: ["RabbitMQ", "diagnostic", "exception"], contract: "Never authoritative. Operators recover from the PostgreSQL task and attempt history.", readsWrites: "Receives dead-lettered broker messages only.", scale: "One shared queue for the initial topology.", trust: "Does not trigger automatic replay or hide failed durable tasks." },
+        "scan-worker": { name: "Scan worker", layer: "Execution plane", summary: "Runs intake, recon, specialist source review, hypothesis validation, triage, and coverage operations.", chips: ["squadrone-worker", "scan queue", "engine consumer"], contract: "Claims a database lease before work and heartbeats until the task completes.", readsWrites: "Reads official plugin source and policy snapshots; writes events, costs, candidate proposals, coverage, and artifacts.", scale: "Scaled independently by scan concurrency and provider capacity.", trust: "No Docker socket. External access is limited to configured sources and model providers." },
+        "candidate-worker": { name: "Candidate worker", layer: "Execution plane", summary: "Runs re-review, automated refinement, and on-demand deep dives that try to lower attacker privilege and remove prerequisites.", chips: ["squadrone-worker", "candidate queue", "immutable lineage"], contract: "Each material improvement becomes an immutable child revision; no-change outcomes remain recorded.", readsWrites: "Reads a selected candidate revision and plugin source; writes revisions, decisions, events, and budget entries.", scale: "Scaled independently from scans and sandboxes.", trust: "Optimistic version checks prevent competing deep dives from overwriting one another." },
+        "sandbox-worker": { name: "Sandbox worker", layer: "Execution plane", summary: "Creates an attempt-scoped WordPress environment and runs isolated runtime proof against one fixed candidate revision.", chips: ["squadrone-sandbox-worker", "optional profile", "privileged"], contract: "Creates, observes, restores, and tears down the controlled verification project.", readsWrites: "Reads candidate/source artifacts; writes structured observations, PoCs, screenshots, traces, and cleanup attestations.", scale: "Enabled through the optional sandbox Compose profile when verification capacity is required.", trust: "Only component with Docker-control capability; exploitation traffic may not reach third parties." },
+        "report-worker": { name: "Report worker", layer: "Execution plane", summary: "The dedicated least-authority image deterministically renders the Patchstack form, evidence files, and final archive for a verified revision.", chips: ["squadrone-report-worker", "report queue", "revision-bound"], contract: "Idempotent by candidate revision and report-template version.", readsWrites: "Refreshes eligibility, reads verified evidence and researcher settings, then writes private report revisions and content-addressed archives.", scale: "Independent replicas may build separate reports concurrently.", trust: "Contains no scan engine, model-provider SDK, Docker capability, or submission adapter." },
+        "submission-worker": { name: "Submission worker", layer: "Execution plane", summary: "Performs the approved Patchstack submission as a separate, tightly scoped external side effect.", chips: ["squadrone-submission-worker", "submission queue", "approval required"], contract: "Consumes a single-use approval bound to an exact report hash.", readsWrites: "Reads the approved report/archive and records the external result.", scale: "Submission work is serialized initially.", trust: "If the response is lost after sending begins, records outcome_unknown and stops automatic retry." },
+        engine: { name: "Squadrone engine package", layer: "Execution plane", summary: "The versioned Python package/shared build layer loaded only by scan, candidate, and sandbox workers: agents, prompts, stages, schemas, gates, model gateway, and sandbox logic.", chips: ["package", "build dependency", "not a service"], contract: "Engine logic remains in-process within those three worker roles and exposes stable application ports.", readsWrites: "Uses injected ports for budgets, artifacts, events, cancellation, and sandboxing.", scale: "An engine change rebuilds only scan, candidate, and sandbox worker images.", trust: "No standalone container, endpoint, report role, submission role, or network identity." },
+        postgres: { name: "PostgreSQL", layer: "Data plane", summary: "The authoritative workflow database for batches, runs, candidates, revisions, tasks, attempts, budgets, approvals, events, and artifact metadata.", chips: ["source of truth", "persistent volume", "private"], contract: "A transaction records accepted task intent and its outbox entry together.", readsWrites: "Serves API projections, scheduler decisions, leases, idempotency keys, and append-only history.", scale: "Single local database initially with normal backups.", trust: "Broker state can be reconstructed from durable database intent; the reverse is not true." },
+        artifacts: { name: "Artifact store", layer: "Data plane", summary: "Immutable evidence bytes and atomic manifests, initially on a mounted local volume behind a storage port.", chips: ["content-addressed", "hash-bound", "persistent"], contract: "Every artifact records producer task, attempt, revision, media type, size, and digest.", readsWrites: "Stores official source, PoCs, screenshots, reports, archives, and manifests.", scale: "Local volume first; later object-store adapters do not change application logic.", trust: "Never committed to Git and never treated as mutable workflow state." },
+        settings: { name: "Settings + pipelines", layer: "Data plane", summary: "Ignored local configuration containing researcher identity, pipeline choices, defaults, install brackets, and concurrency settings.", chips: ["bind mount", "ignored", "secret-free"], contract: "Validated atomic edits through Settings API; effective configuration is snapshotted per run.", readsWrites: "Mounted into API and workers as needed.", scale: "One local file set outside database backups.", trust: "Provider credentials remain runtime secrets and are never written here." },
+        catalogue: { name: "WordPress.org + Patchstack", layer: "External boundary", summary: "Current plugin versions, official archives, installation counts, VDP catalogue entries, policies, and rule snapshots.", chips: ["external", "catalogue", "scope"], contract: "Selection uses cached snapshots, then the API and report path recheck current eligibility at their required boundaries.", readsWrites: "Scan workers fetch allowed public source/policy inputs; the API refreshes selection evidence.", scale: "Rate-limited external dependency.", trust: "Snapshot source URL, fetch time, digest, and policy version for reproducibility." },
+        llm: { name: "LLM providers", layer: "External boundary", summary: "Configured research models accessed through the Squadrone model gateway with pinned profiles and cost accounting.", chips: ["external", "model gateway", "costed"], contract: "Each operation has durable intent and started, confirmed, or outcome_unknown state.", readsWrites: "Receives bounded prompts/tool context and returns structured research outputs.", scale: "Provider/model concurrency limits are independent configuration.", trust: "Exactly-once billing cannot be guaranteed; ambiguous provider outcomes are visible." },
+        patchstack: { name: "Patchstack submission", layer: "External boundary", summary: "The final external destination after a researcher reviews and explicitly approves the exact report revision.", chips: ["external", "side effect", "approval"], contract: "No automatic send and no automatic retry after an uncertain outcome.", readsWrites: "Receives the approved report data and evidence archive.", scale: "Serialized initially through one submission worker.", trust: "Submission credentials exist only in the specialised worker runtime." },
+        ingress: { name: "Sandbox ingress / trace proxy", layer: "Attempt sandbox", summary: "The fixed internal target and observation boundary through which PoCs reach the controlled WordPress instance.", chips: ["attempt-scoped", "internal network", "trace"], contract: "Bounds requests and captures evidence without contacting third parties.", readsWrites: "Forwards permitted exploit/control requests and records parent-observed traces.", scale: "One per verification attempt.", trust: "Temporary bootstrap egress is removed before exploitation." },
+        wordpress: { name: "Sandbox WordPress", layer: "Attempt sandbox", summary: "Ephemeral WordPress with the selected official plugin version installed for isolated reproduction.", chips: ["attempt-scoped", "target", "isolated"], contract: "Represents the controlled application under test, never a third-party site.", readsWrites: "Serves the PoC path and exposes bounded evidence to the parent verifier.", scale: "One per active attempt.", trust: "Removed with networks, volumes, and workspace during deterministic cleanup." },
+        mariadb: { name: "Sandbox MariaDB", layer: "Attempt sandbox", summary: "Ephemeral database backing the verification-only WordPress project.", chips: ["attempt-scoped", "ephemeral", "isolated"], contract: "Created from a pinned image and destroyed after the attempt.", readsWrites: "Stores only test WordPress state.", scale: "One per active attempt.", trust: "Not the workflow database and never reachable from external networks." }
+      };
+
+      const jobs = {
+        scan: { slug: "elementskit-lite", stage: "Source review", batch: "batch-71c4", progress: 64, elapsed: "08:42", flow: "scan" },
+        deepDive: { slug: "business-directory-plugin", stage: "Privilege reduction deep dive", batch: "review-29a1", progress: 31, elapsed: "03:18", flow: "candidate" },
+        report: { slug: "wp-members", stage: "Evidence report build", batch: "report-16d9", progress: 92, elapsed: "00:48", flow: "report" },
+        scanQueued: { slug: "essential-addons-for-elementor-lite", stage: "Waiting for scan worker", batch: "batch-71c4", progress: null, elapsed: "queued 01:12", flow: "scan" },
+        reviewQueued: { slug: "metform", stage: "Waiting for candidate worker", batch: "review-f44e", progress: null, elapsed: "queued 00:37", flow: "candidate" }
+      };
+
+      const defaultLiveState = {
+        health: "healthy",
+        status: "Healthy",
+        metricLabel: "Health probe",
+        metric: "Passing",
+        heartbeat: "Current snapshot",
+        work: []
+      };
+
+      const liveState = {
+        browser: { metricLabel: "Client state", metric: "Session connected", heartbeat: "Current snapshot" },
+        cli: { health: "na", status: "On demand", metricLabel: "Client state", metric: "No resident process", heartbeat: "Not applicable", empty: "Client process; no persistent runtime health." },
+        frontend: { metricLabel: "HTTP", metric: "Responding", heartbeat: "Recent" },
+        api: { metricLabel: "API", metric: "Serving status and commands", heartbeat: "Recent", empty: "No plugin work resides in the API." },
+        scheduler: { metricLabel: "Dispatcher", metric: "Waiting work ready · leases current", heartbeat: "Recent", badgeKind: "waiting", work: [jobs.scanQueued, jobs.reviewQueued] },
+        rabbitmq: { metricLabel: "Broker diagnostics", metric: "Ready messages observed", heartbeat: "Recent", empty: "Transport diagnostics only; waiting plugin work resides on the scheduler." },
+        "queue-scan": { metricLabel: "Queue diagnostics", metric: "Ready message observed", heartbeat: "Recent", empty: "Transport diagnostics only; this node does not duplicate plugin residency." },
+        "queue-candidate": { metricLabel: "Queue diagnostics", metric: "Ready message observed", heartbeat: "Recent", empty: "Transport diagnostics only; this node does not duplicate plugin residency." },
+        "queue-sandbox": { metricLabel: "Queue diagnostics", metric: "Empty", heartbeat: "Recent", empty: "No verification message is waiting." },
+        "queue-report": { metricLabel: "Queue diagnostics", metric: "Empty", heartbeat: "Recent", empty: "No report message is waiting." },
+        "queue-submission": { metricLabel: "Queue diagnostics", metric: "Empty", heartbeat: "Recent", empty: "No approved submission message is waiting." },
+        "queue-deadletter": { metricLabel: "Queue diagnostics", metric: "Empty", heartbeat: "Recent", empty: "No dead-lettered messages." },
+        "scan-worker": { metricLabel: "Workload", metric: "Scan work active", heartbeat: "Recent", work: [jobs.scan] },
+        "candidate-worker": { metricLabel: "Workload", metric: "Refinement active", heartbeat: "Recent", work: [jobs.deepDive] },
+        "sandbox-worker": { health: "na", status: "Inactive · optional profile", metricLabel: "Profile", metric: "Not enabled", heartbeat: "Not running", empty: "No sandbox worker or isolated verification attempt is active." },
+        "report-worker": { metricLabel: "Workload", metric: "Deterministic report build active", heartbeat: "Recent", work: [jobs.report] },
+        "submission-worker": { metricLabel: "Workload", metric: "Idle · awaiting approval", heartbeat: "Recent", empty: "No plugin is currently being submitted." },
+        engine: { health: "na", status: "Package dependency", metricLabel: "Consumers", metric: "Scan · candidate · sandbox", heartbeat: "Not applicable", empty: "Build dependency, not a separately running service." },
+        postgres: { metricLabel: "Database", metric: "Authoritative state available", heartbeat: "Recent", empty: "Workflow state is available; plugin residency is shown only at the current scheduler or worker." },
+        artifacts: { metricLabel: "Storage", metric: "Artifact volume available", heartbeat: "Recent", empty: "Evidence storage is available; plugin residency is not duplicated here." },
+        settings: { health: "na", status: "Static configuration", metricLabel: "Configuration", metric: "Mounted read-only", heartbeat: "Not applicable", empty: "Static configuration has no runtime health probe." },
+        catalogue: { status: "Reachable", metricLabel: "Latest refresh", metric: "Succeeded", heartbeat: "Recent", empty: "Public source and eligibility inputs are available." },
+        llm: { health: "healthy", status: "Healthy", metricLabel: "Latest model call", metric: "Response confirmed", heartbeat: "Recent", empty: "Provider health is inferred from the latest completed model response; plugin residency remains on the workers." },
+        patchstack: { health: "na", status: "Inactive", metricLabel: "Submission destination", metric: "Contacted only after approval", heartbeat: "Not contacted", empty: "No approved submission is active." },
+        ingress: { health: "na", status: "Inactive", metricLabel: "Attempt sandbox", metric: "No active attempt", heartbeat: "Not running", empty: "Created only while isolated verification work exists." },
+        wordpress: { health: "na", status: "Inactive", metricLabel: "Attempt sandbox", metric: "No active target", heartbeat: "Not running", empty: "Created only while isolated verification work exists." },
+        mariadb: { health: "na", status: "Inactive", metricLabel: "Attempt sandbox", metric: "No active test state", heartbeat: "Not running", empty: "Created only while isolated verification work exists." }
+      };
+
+      const healthPalette = {
+        healthy: { color: "#62c98d", label: "Healthy" },
+        degraded: { color: "#ffb84d", label: "Degraded" },
+        unavailable: { color: "#ff6b73", label: "Unavailable" },
+        na: { color: "#8294a8", label: "Not monitored" }
+      };
+
+      const svg = document.getElementById("diagram");
+      const viewport = document.getElementById("viewport");
+      const popover = document.getElementById("live-popover");
+      const svgDefs = svg.querySelector("defs");
+      const serviceNodes = [...svg.querySelectorAll(".service[data-node]")];
+      const edgeGroups = [...svg.querySelectorAll(".edge-group")];
+      const baseView = { x: 0, y: 60, width: 1800, height: 1060 };
+      const svgNS = "http://www.w3.org/2000/svg";
+      let view = { ...baseView };
+      let hoveredNode = null;
+      let pinnedNode = null;
+      let panStart = null;
+      let wheelFrame = null;
+      let wheelFactor = 1;
+      let wheelPoint = null;
+      let panFrame = null;
+      let pendingPan = null;
+      let navigationEndTimer = null;
+
+      const stateFor = id => ({ ...defaultLiveState, ...(liveState[id] || {}) });
+      const escapeHTML = value => String(value).replace(/[&<>"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" })[character]);
+
+      const activeEdges = new Set([
+        "api-scheduler", "scheduler-qscan", "scheduler-qcandidate",
+        "qscan-scan", "qcandidate-candidate", "qreport-report",
+        "scan-engine", "catalogue-api", "catalogue-scan", "llm-scan", "scan-postgres", "scan-artifacts",
+        "candidate-engine", "llm-candidate", "candidate-postgres", "candidate-artifacts",
+        "report-postgres", "report-artifacts"
+      ]);
+
+      edgeGroups.forEach((group, index) => {
+        const endpointHealth = [stateFor(group.dataset.from).health, stateFor(group.dataset.to).health];
+        group.dataset.linkHealth = endpointHealth.some(value => value === "degraded" || value === "unavailable")
+          ? "unhealthy"
+          : endpointHealth.some(value => value === "na") ? "unknown" : "healthy";
+        const edge = group.querySelector("path.edge");
+        if (!edge || edge.classList.contains("dependency")) return;
+        const classes = [...edge.classList].filter(className => className !== "edge");
+
+        const mask = document.createElementNS(svgNS, "mask");
+        const maskId = `wire-outline-${index}`;
+        mask.setAttribute("id", maskId);
+        mask.setAttribute("maskUnits", "userSpaceOnUse");
+        mask.setAttribute("maskContentUnits", "userSpaceOnUse");
+        mask.setAttribute("x", "-120");
+        mask.setAttribute("y", "-120");
+        mask.setAttribute("width", "2040");
+        mask.setAttribute("height", "1360");
+
+        const outerMask = edge.cloneNode(false);
+        outerMask.removeAttribute("class");
+        outerMask.removeAttribute("marker-end");
+        outerMask.setAttribute("fill", "none");
+        outerMask.setAttribute("stroke", "white");
+        outerMask.setAttribute("stroke-width", "4");
+        outerMask.setAttribute("stroke-linecap", "round");
+        outerMask.setAttribute("stroke-linejoin", "round");
+        const innerMask = edge.cloneNode(false);
+        innerMask.removeAttribute("class");
+        innerMask.removeAttribute("marker-end");
+        innerMask.setAttribute("fill", "none");
+        innerMask.setAttribute("stroke", "black");
+        innerMask.setAttribute("stroke-width", "3");
+        innerMask.setAttribute("stroke-linecap", "round");
+        innerMask.setAttribute("stroke-linejoin", "round");
+        mask.append(outerMask, innerMask);
+        svgDefs.append(mask);
+
+        const wire = edge.cloneNode(false);
+        wire.setAttribute("class", [...classes, "edge-wire"].join(" "));
+        wire.setAttribute("mask", `url(#${maskId})`);
+        wire.setAttribute("aria-hidden", "true");
+        group.insertBefore(wire, edge);
+      });
+
+      function addHealthMarker(node) {
+        const id = node.dataset.node;
+        const state = stateFor(id);
+        const palette = healthPalette[state.health] || healthPalette.na;
+        const card = node.querySelector(".card, .engine-card");
+        if (!card) return;
+        const width = Number(card.getAttribute("width")) || card.getBBox().width;
+        const marker = document.createElementNS(svgNS, "g");
+        marker.classList.add("live-node-marker");
+        marker.setAttribute("aria-hidden", "true");
+
+        const ring = document.createElementNS(svgNS, "circle");
+        ring.classList.add("live-health-ring");
+        ring.setAttribute("cx", width - 11);
+        ring.setAttribute("cy", 11);
+        ring.setAttribute("r", 7);
+        const dot = document.createElementNS(svgNS, "circle");
+        dot.classList.add("live-health-dot");
+        dot.setAttribute("cx", width - 11);
+        dot.setAttribute("cy", 11);
+        dot.setAttribute("r", 3.4);
+        marker.append(ring, dot);
+
+        if (state.work.length) {
+          const badgeKind = state.badgeKind || (state.work.every(item => item.progress === null) ? "waiting" : "active");
+          const countRing = document.createElementNS(svgNS, "circle");
+          countRing.classList.add("live-count-ring", `is-${badgeKind}`);
+          countRing.setAttribute("cx", width - 33);
+          countRing.setAttribute("cy", 11);
+          countRing.setAttribute("r", 8.5);
+          const countText = document.createElementNS(svgNS, "text");
+          countText.classList.add("live-count-text");
+          countText.setAttribute("x", width - 33);
+          countText.setAttribute("y", 11.5);
+          countText.textContent = state.work.length > 9 ? "9+" : state.work.length;
+          marker.append(countRing, countText);
+        }
+
+        node.style.setProperty("--node-health", palette.color);
+        node.dataset.health = state.health;
+        node.classList.toggle("is-live-node", state.work.length > 0);
+        node.dataset.workState = state.badgeKind || (state.work.length ? "active" : "idle");
+        node.dataset.workSlugs = state.work.map(item => item.slug).join(" ");
+        node.setAttribute("aria-label", `${components[id].name}, ${state.status}, ${state.work.length} ${node.dataset.workState} plugin items`);
+        node.append(marker);
+      }
+
+      function updateSummary() {
+        const states = Object.keys(components).map(stateFor);
+        const activePlugins = new Set(states.flatMap(state => state.work).filter(item => item.progress !== null).map(item => item.slug));
+        const waitingPlugins = new Set(states.flatMap(state => state.work).filter(item => item.progress === null).map(item => item.slug));
+        document.getElementById("healthy-count").textContent = states.filter(state => state.health === "healthy").length;
+        document.getElementById("active-count").textContent = activePlugins.size;
+        document.getElementById("waiting-count").textContent = waitingPlugins.size;
+        document.getElementById("degraded-count").textContent = states.filter(state => state.health === "degraded").length;
+        document.getElementById("unavailable-count").textContent = states.filter(state => state.health === "unavailable").length;
+      }
+
+      function applyVisualState() {
+        serviceNodes.forEach(node => {
+          const id = node.dataset.node;
+          node.classList.toggle("is-selected", id === pinnedNode);
+        });
+
+        edgeGroups.forEach(group => {
+          const active = activeEdges.has(group.dataset.edge);
+          const related = hoveredNode && (group.dataset.from === hoveredNode || group.dataset.to === hoveredNode);
+          group.classList.toggle("is-active", active);
+          group.classList.toggle("is-related", Boolean(related));
+          group.classList.toggle("is-dimmed", Boolean(hoveredNode && !related));
+        });
+      }
+
+      function renderWorkload(item) {
+        const progress = item.progress === null ? "Waiting" : `${item.progress}%`;
+        const bar = item.progress === null ? "" : `<div class="progress-track"><i style="--progress:${item.progress}%"></i></div>`;
+        return `<div class="workload" title="${escapeHTML(item.slug)}">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+            <strong style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHTML(item.slug)}</strong>
+            <span class="workload-progress">${progress}</span>
+          </div>
+          <div class="workload-meta"><span>${escapeHTML(item.stage)}</span><span>${escapeHTML(item.elapsed)}</span></div>
+          <div class="workload-meta"><span>${escapeHTML(item.batch)}</span><span>${escapeHTML(item.flow)}</span></div>
+          ${bar}
+        </div>`;
+      }
+
+      function positionPopover(clientX, clientY) {
+        const margin = 12;
+        const offset = 16;
+        const box = popover.getBoundingClientRect();
+        let left = clientX + offset;
+        let top = clientY + offset;
+        if (left + box.width > window.innerWidth - margin) left = clientX - box.width - offset;
+        if (top + box.height > window.innerHeight - margin) top = window.innerHeight - box.height - margin;
+        popover.style.left = `${Math.max(margin, left)}px`;
+        popover.style.top = `${Math.max(margin, top)}px`;
+      }
+
+      function anchorForNode(id) {
+        const node = svg.querySelector(`.service[data-node="${id}"]`);
+        const box = node?.getBoundingClientRect();
+        return box ? { clientX: box.right, clientY: box.top + Math.min(28, box.height / 2) } : { clientX: window.innerWidth / 2, clientY: 100 };
+      }
+
+      function showPopover(id, point = null) {
+        const component = components[id];
+        if (!component || panStart) return;
+        const state = stateFor(id);
+        const palette = healthPalette[state.health] || healthPalette.na;
+        const status = state.status || palette.label;
+        const work = state.work || [];
+        const workMarkup = work.length
+          ? `${work.slice(0, 4).map(renderWorkload).join("")}${work.length > 4 ? `<div class="empty-workload">+ ${work.length - 4} more plugin items</div>` : ""}`
+          : `<div class="empty-workload">${escapeHTML(state.empty || "No plugin is currently executing in this component.")}</div>`;
+        popover.style.setProperty("--popover-color", palette.color);
+        popover.innerHTML = `<div class="popover-header">
+            <div><div class="popover-eyebrow">${escapeHTML(component.layer)}</div><h2 class="popover-title">${escapeHTML(component.name)}</h2></div>
+            <span class="popover-health">${escapeHTML(status)}</span>
+          </div>
+          <div class="popover-metrics">
+            <div class="popover-metric"><span>${escapeHTML(state.metricLabel)}</span><strong>${escapeHTML(state.metric)}</strong></div>
+            <div class="popover-metric"><span>Last heartbeat</span><strong>${escapeHTML(state.heartbeat)}</strong></div>
+          </div>
+          <div class="workloads"><div class="workloads-heading">Plugin work at this component · ${work.length}</div>${workMarkup}</div>
+          <div class="simulation-note">Prototype telemetry · simulated and not connected to the current Squadrone runtime</div>`;
+        popover.classList.add("is-visible");
+        hoveredNode = id;
+        applyVisualState();
+        const target = point || anchorForNode(id);
+        requestAnimationFrame(() => positionPopover(target.clientX, target.clientY));
+      }
+
+      function hidePopover({ force = false } = {}) {
+        if (pinnedNode && !force) {
+          showPopover(pinnedNode);
+          return;
+        }
+        popover.classList.remove("is-visible");
+        hoveredNode = null;
+        applyVisualState();
+      }
+
+      function clearPinned() {
+        pinnedNode = null;
+        hidePopover({ force: true });
+      }
+
+      function markNavigating() {
+        document.body.classList.add("is-navigating");
+        clearTimeout(navigationEndTimer);
+        navigationEndTimer = setTimeout(() => document.body.classList.remove("is-navigating"), 140);
+      }
+
+      function setView(next) {
+        const minWidth = 420;
+        const maxWidth = 2300;
+        const width = Math.max(minWidth, Math.min(maxWidth, next.width));
+        const height = width * (baseView.height / baseView.width);
+        view = { x: next.x, y: next.y, width, height };
+        svg.setAttribute("viewBox", `${view.x} ${view.y} ${view.width} ${view.height}`);
+        document.getElementById("zoom-readout").textContent = `${Math.round((baseView.width / view.width) * 100)}%`;
+      }
+
+      function fitView() { setView({ ...baseView }); }
+
+      function zoom(factor, clientX = null, clientY = null) {
+        const rect = viewport.getBoundingClientRect();
+        if (clientX === null) clientX = rect.left + rect.width / 2;
+        if (clientY === null) clientY = rect.top + rect.height / 2;
+        const px = (clientX - rect.left) / rect.width;
+        const py = (clientY - rect.top) / rect.height;
+        const targetWidth = view.width * factor;
+        const targetHeight = targetWidth * (baseView.height / baseView.width);
+        const anchorX = view.x + view.width * px;
+        const anchorY = view.y + view.height * py;
+        setView({ x: anchorX - targetWidth * px, y: anchorY - targetHeight * py, width: targetWidth, height: targetHeight });
+      }
+
+      function resetAll() {
+        clearPinned();
+        fitView();
+      }
+
+      serviceNodes.forEach(node => {
+        const id = node.dataset.node;
+        addHealthMarker(node);
+        node.addEventListener("mouseenter", event => showPopover(id, event));
+        node.addEventListener("mousemove", event => { if (!panStart) positionPopover(event.clientX, event.clientY); });
+        node.addEventListener("mouseleave", () => hidePopover());
+        node.addEventListener("focus", () => showPopover(id));
+        node.addEventListener("blur", () => hidePopover());
+        node.addEventListener("click", event => {
+          event.stopPropagation();
+          pinnedNode = pinnedNode === id ? null : id;
+          showPopover(id, event);
+          applyVisualState();
+        });
+        node.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            pinnedNode = pinnedNode === id ? null : id;
+            showPopover(id);
+          }
+        });
+      });
+
+      document.getElementById("reset-view").addEventListener("click", resetAll);
+      document.getElementById("fit-view").addEventListener("click", fitView);
+      document.getElementById("zoom-in").addEventListener("click", () => zoom(.82));
+      document.getElementById("zoom-out").addEventListener("click", () => zoom(1.22));
+
+      let modalFocusTrap = false;
+      const focusableElements = () => Array.from(document.querySelectorAll(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )).filter(element => {
+        const style = getComputedStyle(element);
+        return style.display !== "none" && style.visibility !== "hidden";
+      });
+
+      window.addEventListener("message", event => {
+        if (event.source !== window.parent) return;
+
+        if (event.data?.type === "squadrone-architecture-modal-state") {
+          modalFocusTrap = Boolean(event.data.expanded);
+        }
+
+        if (event.data?.type === "squadrone-architecture-focus-target") {
+          const focusable = focusableElements();
+          const target = event.data.edge === "first" ? focusable[0] : focusable.at(-1);
+          target?.focus();
+        }
+      });
+
+      document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+          clearPinned();
+          window.parent.postMessage({ type: "squadrone-architecture-escape" }, "*");
+        }
+
+        if (modalFocusTrap && event.key === "Tab") {
+          const focusable = focusableElements();
+          const first = focusable[0];
+          const last = focusable.at(-1);
+          const leavingBackward = event.shiftKey && document.activeElement === first;
+          const leavingForward = !event.shiftKey && document.activeElement === last;
+
+          if (leavingBackward || leavingForward) {
+            event.preventDefault();
+            window.parent.postMessage({
+              type: "squadrone-architecture-focus-edge",
+              direction: leavingBackward ? "backward" : "forward",
+            }, "*");
+          }
+        }
+      });
+
+      svg.addEventListener("wheel", event => {
+        event.preventDefault();
+        markNavigating();
+        const boundedDelta = Math.max(-120, Math.min(120, event.deltaY));
+        wheelFactor *= Math.exp(boundedDelta * .0015);
+        wheelFactor = Math.max(.72, Math.min(1.38, wheelFactor));
+        wheelPoint = { clientX: event.clientX, clientY: event.clientY };
+        if (wheelFrame) return;
+        wheelFrame = requestAnimationFrame(() => {
+          zoom(wheelFactor, wheelPoint.clientX, wheelPoint.clientY);
+          wheelFactor = 1;
+          wheelPoint = null;
+          wheelFrame = null;
+        });
+      }, { passive: false });
+
+      viewport.addEventListener("pointerdown", event => {
+        if (event.target.closest?.(".service")) return;
+        clearPinned();
+        panStart = { clientX: event.clientX, clientY: event.clientY, x: view.x, y: view.y };
+        markNavigating();
+        viewport.setPointerCapture(event.pointerId);
+        viewport.classList.add("is-panning");
+      });
+      viewport.addEventListener("pointermove", event => {
+        if (!panStart) return;
+        markNavigating();
+        const dx = (event.clientX - panStart.clientX) * (view.width / viewport.clientWidth);
+        const dy = (event.clientY - panStart.clientY) * (view.height / viewport.clientHeight);
+        pendingPan = { x: panStart.x - dx, y: panStart.y - dy, width: view.width, height: view.height };
+        if (panFrame) return;
+        panFrame = requestAnimationFrame(() => {
+          setView(pendingPan);
+          pendingPan = null;
+          panFrame = null;
+        });
+      });
+      const endPan = () => { panStart = null; viewport.classList.remove("is-panning"); markNavigating(); };
+      viewport.addEventListener("pointerup", endPan);
+      viewport.addEventListener("pointercancel", endPan);
+      viewport.addEventListener("dblclick", event => {
+        if (!event.target.closest?.(".service")) zoom(.72, event.clientX, event.clientY);
+      });
+
+      updateSummary();
+      fitView();
+      applyVisualState();
+    })();
+  </script>
+</body>
+</html>

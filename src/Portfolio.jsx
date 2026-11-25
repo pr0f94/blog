@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import hljs from "highlight.js/lib/core";
 import bash from "highlight.js/lib/languages/bash";
 import python from "highlight.js/lib/languages/python";
@@ -48,14 +49,14 @@ const PENDING_CVES = [
     status: "Pending disclosure",
     product: "Confidential software product",
     type: "Severity unconfirmed",
-    summary: "A vulnerability identified and responsibly disclosed to the vendor. CVE assignment, severity, and technical details are pending publication.",
+    summary: "A confirmed CVE identified and responsibly disclosed to the vendor. Its identifier, severity, and technical details remain withheld until coordinated publication.",
   },
   {
     id: "pending-disclosure-02",
     status: "Pending disclosure",
     product: "Confidential software product",
     type: "Severity unconfirmed",
-    summary: "A vulnerability identified and responsibly disclosed to the vendor. CVE assignment, severity, and technical details are pending publication.",
+    summary: "A confirmed CVE identified and responsibly disclosed to the vendor. Its identifier, severity, and technical details remain withheld until coordinated publication.",
   },
 ];
 
@@ -214,6 +215,316 @@ function CodeBlock({ lang, code }) {
   );
 }
 
+function ExpandableImage({ alt = "", style, ...props }) {
+  const [expanded, setExpanded] = useState(false);
+  const triggerRef = useRef(null);
+  const closeButtonRef = useRef(null);
+
+  useEffect(() => {
+    if (!expanded) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setExpanded(false);
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+      requestAnimationFrame(() => triggerRef.current?.focus());
+    };
+  }, [expanded]);
+
+  const imageStyle = {
+    maxWidth: "100%",
+    height: "auto",
+    display: "block",
+    borderRadius: "4px",
+    border: "1px solid rgba(var(--text-rgb),0.08)",
+    ...style,
+  };
+
+  return (
+    <>
+      <button
+        ref={triggerRef}
+        type="button"
+        className="article-image-button"
+        onClick={() => setExpanded(true)}
+        aria-label={`Enlarge image: ${alt || "article image"}`}
+        style={{
+          display: "block",
+          width: "100%",
+          margin: "18px 0",
+          padding: 0,
+          border: 0,
+          background: "transparent",
+          cursor: "zoom-in",
+          textAlign: "left",
+        }}
+      >
+        <img {...props} alt={alt} loading={props.loading || "lazy"} decoding={props.decoding || "async"} style={imageStyle} />
+      </button>
+
+      {expanded && createPortal(
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={alt || "Expanded article image"}
+          onClick={() => setExpanded(false)}
+          onKeyDown={(event) => {
+            if (event.key === "Tab") {
+              event.preventDefault();
+              closeButtonRef.current?.focus();
+            }
+          }}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 10000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "24px",
+            background: "rgba(3, 8, 12, 0.94)",
+            backdropFilter: "blur(8px)",
+            cursor: "zoom-out",
+          }}
+        >
+          <button
+            ref={closeButtonRef}
+            type="button"
+            autoFocus
+            onClick={() => setExpanded(false)}
+            aria-label="Close expanded image"
+            style={{
+              position: "fixed",
+              top: "18px",
+              right: "20px",
+              zIndex: 1,
+              width: "38px",
+              height: "38px",
+              borderRadius: "50%",
+              border: "1px solid rgba(255,255,255,0.28)",
+              background: "rgba(8,13,18,0.82)",
+              color: "#fff",
+              fontSize: "24px",
+              lineHeight: 1,
+              cursor: "pointer",
+            }}
+          >×</button>
+
+          <img
+            src={props.src}
+            alt={alt}
+            onClick={(event) => event.stopPropagation()}
+            style={{
+              display: "block",
+              maxWidth: "94vw",
+              maxHeight: "86vh",
+              width: "auto",
+              height: "auto",
+              objectFit: "contain",
+              borderRadius: "6px",
+              boxShadow: "0 24px 80px rgba(0,0,0,0.55)",
+              cursor: "default",
+            }}
+          />
+        </div>,
+        document.body,
+      )}
+    </>
+  );
+}
+
+function InteractiveArchitecture({ src, title = "Interactive architecture" }) {
+  const [expanded, setExpanded] = useState(false);
+  const [inlineInteractive, setInlineInteractive] = useState(false);
+  const dialogRef = useRef(null);
+  const iframeRef = useRef(null);
+  const expandButtonRef = useRef(null);
+  const previousExpandedRef = useRef(false);
+
+  useLayoutEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    if (expanded) {
+      if (dialog.open) dialog.close();
+      dialog.showModal();
+    } else {
+      if (dialog.open) dialog.close();
+      // Setting the non-modal state directly keeps the inline view visible
+      // without running dialog.show()'s focus steps and scrolling the article.
+      dialog.setAttribute("open", "");
+      if (previousExpandedRef.current) {
+        requestAnimationFrame(() => expandButtonRef.current?.focus());
+      }
+    }
+    iframeRef.current?.contentWindow?.postMessage({
+      type: "squadrone-architecture-modal-state",
+      expanded,
+    }, "*");
+    previousExpandedRef.current = expanded;
+  }, [expanded]);
+
+  useEffect(() => {
+    const onFrameMessage = (event) => {
+      if (event.source !== iframeRef.current?.contentWindow) return;
+
+      if (event.data?.type === "squadrone-architecture-escape") {
+        if (expanded) setExpanded(false);
+        else setInlineInteractive(false);
+      }
+
+      if (expanded && event.data?.type === "squadrone-architecture-focus-edge") {
+        expandButtonRef.current?.focus();
+      }
+    };
+
+    window.addEventListener("message", onFrameMessage);
+    return () => window.removeEventListener("message", onFrameMessage);
+  }, [expanded]);
+
+  const enableInlineInteraction = () => {
+    setInlineInteractive(true);
+    requestAnimationFrame(() => iframeRef.current?.focus());
+  };
+
+  const toggleExpanded = () => {
+    setInlineInteractive(false);
+    setExpanded(value => !value);
+  };
+
+  return (
+    <dialog
+      ref={dialogRef}
+      className={`interactive-architecture${expanded ? " is-expanded" : ""}`}
+      aria-label={title}
+      aria-modal={expanded ? "true" : undefined}
+      onCancel={(event) => {
+        event.preventDefault();
+        setExpanded(false);
+      }}
+      onClick={(event) => {
+        if (expanded && event.target === event.currentTarget) setExpanded(false);
+      }}
+      onKeyDown={(event) => {
+        if (
+          expanded
+          && event.key === "Tab"
+          && event.shiftKey
+          && event.target === expandButtonRef.current
+        ) {
+          event.preventDefault();
+          iframeRef.current?.focus();
+          iframeRef.current?.contentWindow?.postMessage({
+            type: "squadrone-architecture-focus-target",
+            edge: "last",
+          }, "*");
+        }
+      }}
+    >
+      <div className="interactive-architecture-header">
+        <div>
+          <span className="interactive-architecture-eyebrow">Interactive view</span>
+          <strong>{title}</strong>
+        </div>
+        <button
+          ref={expandButtonRef}
+          type="button"
+          className="interactive-architecture-expand"
+          onClick={toggleExpanded}
+          aria-expanded={expanded}
+        >
+          {expanded ? "Close" : "Expand"}
+          {expanded ? (
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M6 3H3v3M10 3h3v3M6 13H3v-3M10 13h3v-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </button>
+      </div>
+      <div className={`interactive-architecture-frame${inlineInteractive || expanded ? " is-interactive" : ""}`}>
+        <iframe
+          ref={iframeRef}
+          src={src}
+          title={title}
+          loading="lazy"
+          sandbox="allow-scripts"
+          referrerPolicy="no-referrer"
+          onLoad={() => iframeRef.current?.contentWindow?.postMessage({
+            type: "squadrone-architecture-modal-state",
+            expanded,
+          }, "*")}
+        />
+        {!expanded && !inlineInteractive && (
+          <button
+            type="button"
+            className="interactive-architecture-activate"
+            onClick={enableInlineInteraction}
+          >
+            <span>Activate interactive view</span>
+          </button>
+        )}
+        {!expanded && inlineInteractive && (
+          <button
+            type="button"
+            className="interactive-architecture-release"
+            onClick={() => setInlineInteractive(false)}
+          >
+            Release interaction <kbd>Esc</kbd>
+          </button>
+        )}
+      </div>
+      <div className="interactive-architecture-hint">
+        {inlineInteractive
+          ? "Interaction enabled. Press Escape or release interaction to resume normal page scrolling."
+          : "Simulated workload data. Activate the view to pan, zoom, and inspect components."}
+      </div>
+    </dialog>
+  );
+}
+
+function ArticleCallout({ tone = "teal", label, title, children }) {
+  return (
+    <aside className="article-callout" data-tone={tone}>
+      {label && <div className="article-callout-label">{label}</div>}
+      {title && <h3 className="article-callout-title">{title}</h3>}
+      <div className="article-callout-body">{children}</div>
+    </aside>
+  );
+}
+
+function ArticleCardGrid({ columns = 2, children }) {
+  const safeColumns = Math.min(3, Math.max(1, Number(columns) || 2));
+  return (
+    <div
+      className="article-card-grid"
+      style={{ "--article-grid-columns": safeColumns }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function ArticleCard({ tone = "teal", eyebrow, title, children }) {
+  return (
+    <section className="article-card" data-tone={tone}>
+      {eyebrow && <div className="article-card-eyebrow">{eyebrow}</div>}
+      <h3 className="article-card-title">{title}</h3>
+      <div className="article-card-body">{children}</div>
+    </section>
+  );
+}
+
 
 // ─── MDX RENDERING ───────────────────────────────────────────────────────────
 // Maps MDX-produced HTML elements to our styled React equivalents.
@@ -263,7 +574,12 @@ const mdxComponents = {
        style={{ color: "var(--link)", textDecoration: "underline", textUnderlineOffset: "2px" }} {...props} />
   ),
   img: (props) => (
-    <img style={{ maxWidth: "100%", height: "auto", display: "block", margin: "18px 0", borderRadius: "4px", border: "1px solid rgba(var(--text-rgb),0.08)" }} {...props} />
+    <img
+      loading="lazy"
+      decoding="async"
+      style={{ maxWidth: "100%", height: "auto", display: "block", margin: "18px 0", borderRadius: "4px", border: "1px solid rgba(var(--text-rgb),0.08)" }}
+      {...props}
+    />
   ),
   hr: () => null,
   table: (props) => (
@@ -290,10 +606,19 @@ const mdxComponents = {
       margin: "12px 0", color: "rgba(var(--text-rgb),0.7)", fontStyle: "italic",
     }} {...props} />
   ),
+  ArchitectureView: InteractiveArchitecture,
+  Callout: ArticleCallout,
+  CardGrid: ArticleCardGrid,
+  Card: ArticleCard,
 };
 
-const MdxBody = ({ Content }) =>
-  Content ? <Content components={mdxComponents} /> : null;
+const squadroneMdxComponents = {
+  ...mdxComponents,
+  img: (props) => <ExpandableImage {...props} />,
+};
+
+const MdxBody = ({ Content, components = mdxComponents }) =>
+  Content ? <Content components={components} /> : null;
 
 // ─── DETAIL PANELS ───────────────────────────────────────────────────────────
 
@@ -353,8 +678,8 @@ const PendingCVEDetail = ({ cve }) => (
 );
 
 const PostDetail = ({ post }) => (
-  <article className="detail-panel" aria-labelledby="post-title">
-    <header style={{ marginBottom: "28px" }}>
+  <article className={`detail-panel post-detail post-detail-${post.id}`} aria-labelledby="post-title">
+    <header className="post-header" style={{ marginBottom: "28px" }}>
       <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "14px", flexWrap: "wrap" }}>
         <span style={{
           padding: "3px 10px", borderRadius: "4px", fontSize: "11px", fontWeight: 700,
@@ -376,8 +701,11 @@ const PostDetail = ({ post }) => (
         {post.summary}
       </p>
     </header>
-    <div style={{ borderTop: "1px solid rgba(var(--text-rgb),0.07)", paddingTop: "4px" }}>
-      <MdxBody Content={post.Content} />
+    <div className="post-body" style={{ borderTop: "1px solid rgba(var(--text-rgb),0.07)", paddingTop: "4px" }}>
+      <MdxBody
+        Content={post.Content}
+        components={post.id === "introducing-squadrone" ? squadroneMdxComponents : mdxComponents}
+      />
     </div>
   </article>
 );
@@ -487,9 +815,9 @@ const ConsultationDetail = ({ offer }) => (
 );
 
 
-// ─── RIGHT RAIL (TOC + metadata) ─────────────────────────────────────────────
+// ─── TABLE OF CONTENTS ────────────────────────────────────────────────────────
 
-function RightRail({ section, item }) {
+function TableOfContents({ item, showTitle = true, className = "" }) {
   // Headings come from the rendered MDX DOM (rehype-slug adds the ids).
   const [headings, setHeadings] = useState([]);
   const [active, setActive] = useState(null);
@@ -525,24 +853,30 @@ function RightRail({ section, item }) {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  if (headings.length <= 1) return null;
+
+  return (
+    <nav className={className} aria-label="On this page">
+      {showTitle && <div className="rail-title">On this page</div>}
+      <ul className="rail-toc" role="list">
+        {headings.map(h => (
+          <li key={h.id}>
+            <a href={`#${h.id}`}
+               onClick={(e) => onTocClick(e, h.id)}
+               className={`rail-toc-link ${active === h.id ? "is-active" : ""}`}
+               aria-current={active === h.id ? "true" : undefined}
+            >{h.text}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
+function RightRail({ item }) {
   return (
     <aside className="right-rail" aria-label="Page metadata and table of contents">
-      {headings.length > 1 && (
-        <nav className="rail-section" aria-label="On this page">
-          <div className="rail-title">On this page</div>
-          <ul className="rail-toc" role="list">
-            {headings.map(h => (
-              <li key={h.id}>
-                <a href={`#${h.id}`}
-                   onClick={(e) => onTocClick(e, h.id)}
-                   className={`rail-toc-link ${active === h.id ? "is-active" : ""}`}
-                   aria-current={active === h.id ? "true" : undefined}
-                >{h.text}</a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      )}
+      <TableOfContents item={item} className="rail-section" />
     </aside>
   );
 }
@@ -621,7 +955,10 @@ export default function Portfolio() {
       const { section: s, id } = parseHash();
       setSection(s);
       if (s === "cves")         setSelected([...CVES, ...PENDING_CVES].find(c => c.id === id)?.id  || CVES[0].id);
-      else if (s === "writing") setSelected(POSTS.find(p => p.id === id)?.id || POSTS[0].id);
+      else if (s === "writing") {
+        const post = POSTS.find(p => p.id === id);
+        setSelected(post?.id || POSTS[0].id);
+      }
       else if (s === "tools")   setSelected(TOOLS.find(t => t.id === id)?.id || TOOLS[0].id);
       else if (s === "consulting") setSelected(CONSULTATION_OFFERS.find(o => o.id === id)?.id || CONSULTATION_OFFERS[0].id);
       else                      setSelected("about");
@@ -633,7 +970,9 @@ export default function Portfolio() {
   const switchSection = useCallback((id) => {
     setSection(id);
     if      (id === "cves")    setSelected(CVES[0].id);
-    else if (id === "writing") setSelected(POSTS[0].id);
+    else if (id === "writing") {
+      setSelected(POSTS[0].id);
+    }
     else if (id === "tools")   setSelected(TOOLS[0].id);
     else if (id === "consulting") setSelected(CONSULTATION_OFFERS[0].id);
     else                       setSelected("about");
@@ -858,10 +1197,21 @@ export default function Portfolio() {
           overflow: hidden;
         }
 
+        /* Let posts use all available space between the two navigation columns. */
+        .content-row-writing .article-wrap {
+          width: auto; max-width: none; flex: 1 1 0;
+        }
+        .content-row-writing .post-detail {
+          width: 100%; max-width: none;
+          padding: 36px 40px 36px 48px;
+        }
+        .content-row-writing .article-image-button > img { width: 100%; }
+
         /* Tablet */
         @media (max-width: 960px) {
           .list-col { width: 240px; }
           .detail-panel { padding: 28px 28px; }
+          .content-row-writing .post-detail { padding: 28px; }
         }
 
         /* Mobile */
@@ -887,6 +1237,7 @@ export default function Portfolio() {
           .list-col.collapsed .list-scroll { display: none; }
           .content-col { overflow: visible; }
           .detail-panel { padding: 24px 18px; }
+          .content-row-writing .post-detail { padding: 24px 18px; }
           .about-header { gap: 18px; }
           .about-portrait { width: 136px; height: 136px; border-radius: 14px; }
           .mobile-toggle { display: inline-flex; }
@@ -948,6 +1299,215 @@ export default function Portfolio() {
         .md-h2 + ol,
         .md-h2 + div,
         .md-h2 + table { margin-top: 0 !important; }
+
+        /* Embedded live architecture view. */
+        .interactive-architecture {
+          position: relative;
+          display: block;
+          overflow: hidden;
+          width: 100%; max-width: none;
+          margin: 22px 0 28px;
+          padding: 0;
+          border: 1px solid rgba(var(--text-rgb),0.12);
+          border-radius: 10px;
+          color: #e8edf3;
+          background: #0b1420;
+          box-shadow: 0 18px 42px rgba(0,0,0,0.2);
+        }
+        .interactive-architecture::backdrop {
+          background: rgba(3,8,12,0.95);
+          backdrop-filter: blur(8px);
+        }
+        .interactive-architecture-header {
+          display: flex; align-items: center; justify-content: space-between; gap: 16px;
+          color: #e8edf3; background: #111c2b;
+          padding: 13px 14px 12px 16px;
+        }
+        .interactive-architecture-header > div { min-width: 0; }
+        .interactive-architecture-eyebrow {
+          display: block; margin-bottom: 3px;
+          color: #ffb84d; font-family: 'JetBrains Mono', monospace;
+          font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+        }
+        .interactive-architecture-header strong {
+          display: block; overflow: hidden; color: #e8edf3;
+          font-size: 13px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .interactive-architecture-expand {
+          display: inline-flex; align-items: center; gap: 7px; flex-shrink: 0;
+          padding: 7px 10px; border: 1px solid #3a4d62; border-radius: 5px;
+          color: #d7e0e9; background: #1a2839; cursor: pointer;
+          font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600;
+          transition: border-color 0.12s ease, background 0.12s ease;
+        }
+        .interactive-architecture-expand:hover { border-color: #70849a; background: #213247; }
+        .interactive-architecture-frame {
+          position: relative;
+          height: clamp(520px, 62vh, 720px);
+          border-top: 1px solid #29384a;
+          background: #09121d;
+        }
+        .interactive-architecture-frame iframe {
+          display: block; width: 100%; height: 100%; border: 0; background: #09121d;
+          pointer-events: none;
+        }
+        .interactive-architecture-frame.is-interactive iframe { pointer-events: auto; }
+        .interactive-architecture-activate {
+          position: absolute; inset: 0; z-index: 2;
+          display: grid; place-items: center;
+          width: 100%; border: 0; color: #e8edf3;
+          background: linear-gradient(180deg, rgba(9,18,29,0.04), rgba(9,18,29,0.3));
+          cursor: pointer; touch-action: pan-y;
+        }
+        .interactive-architecture-activate span {
+          padding: 9px 13px; border: 1px solid #53677e; border-radius: 6px;
+          background: rgba(17,28,43,0.94); box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+          font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700;
+        }
+        .interactive-architecture-activate:hover span { border-color: #ffb84d; }
+        .interactive-architecture-release {
+          position: absolute; right: 12px; bottom: 12px; z-index: 3;
+          padding: 7px 9px; border: 1px solid #53677e; border-radius: 5px;
+          color: #e8edf3; background: rgba(17,28,43,0.96); cursor: pointer;
+          font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+        }
+        .interactive-architecture-release kbd {
+          margin-left: 4px; padding: 1px 4px; border: 1px solid #53677e; border-radius: 3px;
+          color: #ffcf83; background: #0b1420; font: inherit;
+        }
+        .interactive-architecture-hint {
+          padding: 9px 14px; border-top: 1px solid #29384a;
+          color: #93a4b8; background: #101a27; font-size: 10.5px; line-height: 1.45;
+        }
+        .interactive-architecture.is-expanded {
+          position: fixed; inset: 18px; z-index: 10000;
+          display: flex; flex-direction: column; overflow: hidden;
+          width: auto; max-width: none; height: auto; max-height: none; margin: 0;
+          border: 1px solid #3a4d62; border-radius: 9px;
+          background: #09121d; box-shadow: 0 28px 90px rgba(0,0,0,0.62);
+        }
+        .interactive-architecture.is-expanded .interactive-architecture-header { flex-shrink: 0; }
+        .interactive-architecture.is-expanded .interactive-architecture-frame {
+          flex: 1; min-height: 0; height: auto;
+        }
+        .interactive-architecture.is-expanded .interactive-architecture-hint { display: none; }
+
+        /* Reusable article blocks for posts that need more visual rhythm. */
+        .article-callout,
+        .article-card {
+          --article-tone: var(--accent);
+          --article-tint: var(--teal-tint);
+        }
+        .article-callout[data-tone="blue"],
+        .article-card[data-tone="blue"] {
+          --article-tone: var(--link);
+          --article-tint: var(--blue-tint);
+        }
+        .article-callout[data-tone="violet"],
+        .article-card[data-tone="violet"] {
+          --article-tone: var(--article-accent);
+          --article-tint: var(--violet-tint);
+        }
+        .article-callout {
+          position: relative;
+          overflow: hidden;
+          margin: 18px 0 24px;
+          padding: 16px 18px;
+          border: 1px solid rgba(var(--text-rgb),0.1);
+          border-left: 3px solid var(--article-tone);
+          border-radius: 9px;
+          background:
+            linear-gradient(135deg, var(--article-tint), transparent 78%),
+            rgba(var(--panel-rgb),0.34);
+        }
+        .article-callout::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          right: 0;
+          width: 86px;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, var(--article-tone));
+          opacity: 0.55;
+        }
+        .article-callout-label,
+        .article-card-eyebrow {
+          color: var(--article-tone);
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+        }
+        .article-callout-title {
+          margin: 5px 0 2px;
+          color: var(--text);
+          font-size: 17px;
+          line-height: 1.4;
+          text-transform: none;
+          letter-spacing: -0.01em;
+        }
+        .article-callout-body > p {
+          margin: 6px 0 0 !important;
+          color: rgba(var(--text-rgb),0.72) !important;
+          font-size: 14px !important;
+          line-height: 1.7 !important;
+        }
+        .article-card-grid {
+          display: grid;
+          grid-template-columns: repeat(var(--article-grid-columns, 2), minmax(0, 1fr));
+          gap: 11px;
+          margin: 16px 0 24px;
+        }
+        .article-card {
+          position: relative;
+          overflow: hidden;
+          min-width: 0;
+          padding: 15px 16px 14px;
+          border: 1px solid rgba(var(--text-rgb),0.09);
+          border-top: 2px solid var(--article-tone);
+          border-radius: 9px;
+          background:
+            linear-gradient(145deg, var(--article-tint), transparent 82%),
+            rgba(var(--panel-rgb),0.28);
+        }
+        .article-card-title {
+          margin: 5px 0 0;
+          color: rgba(var(--text-rgb),0.94);
+          font-size: 14px;
+          font-weight: 700;
+          line-height: 1.35;
+          text-transform: none;
+          letter-spacing: 0;
+        }
+        .article-card-body > p {
+          margin: 6px 0 0 !important;
+          color: rgba(var(--text-rgb),0.68) !important;
+          font-size: 13.5px !important;
+          line-height: 1.65 !important;
+        }
+        .post-detail-introducing-squadrone .md-h2 {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .post-detail-introducing-squadrone .md-h2::before {
+          content: "";
+          width: 4px;
+          height: 20px;
+          flex: 0 0 auto;
+          border-radius: 999px;
+          background: linear-gradient(180deg, var(--accent), var(--article-accent));
+          box-shadow: 0 0 12px var(--teal-tint);
+        }
+
+        @media (max-width: 700px) {
+          .article-card-grid { grid-template-columns: 1fr; }
+          .interactive-architecture-frame { height: 480px; }
+          .interactive-architecture-header { align-items: flex-start; }
+          .interactive-architecture.is-expanded { inset: 0; border: 0; border-radius: 0; }
+        }
 
         /* highlight.js theme overrides — keep our card chrome, use theme only for tokens */
         pre code.hljs {
@@ -1059,57 +1619,59 @@ export default function Portfolio() {
               borderBottom: "1px solid rgba(var(--text-rgb),0.06)",
               flexShrink: 0,
             }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: "18px", fontWeight: 700, color: "var(--text)" }}>
-                    {section === "cves" ? CVES.length + PENDING_CVES.length : section === "writing" ? POSTS.length : section === "tools" ? TOOLS.length : section === "consulting" ? CONSULTATION_OFFERS.length : (about.certifications?.length || 0)}{" "}
-                    <span style={{ color: "rgba(var(--text-rgb),0.5)", fontWeight: 400, fontSize: "14px" }}>
-                      {section === "cves" ? "CVEs" : section === "writing" ? "articles" : section === "tools" ? "tools" : section === "consulting" ? "sessions" : "certs"}
-                    </span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className="mobile-toggle nav-btn"
-                  aria-expanded={mobileShowList}
-                  aria-controls="list-scroll"
-                  onClick={() => setMobileShowList(v => !v)}
-                  style={{
-                    background: "transparent", border: "1px solid rgba(var(--text-rgb),0.12)",
-                    color: "rgba(var(--text-rgb),0.75)", padding: "6px 10px", borderRadius: "6px",
-                    cursor: "pointer", fontSize: "12px", fontFamily: "inherit",
-                  }}
-                >{mobileShowList ? "Hide" : "Show"}</button>
-              </div>
-
-              {["cves", "writing", "tools"].includes(section) && (
-                <div style={{ marginTop: "12px" }}>
-                  <div style={{ position: "relative" }}>
-                    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 18 18" fill="none"
-                         style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "rgba(var(--text-rgb),0.42)", pointerEvents: "none" }}>
-                      <circle cx="7.5" cy="7.5" r="4.75" stroke="currentColor" strokeWidth="1.5" />
-                      <path d="M11 11l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                    </svg>
-                    <input
-                      type="search"
-                      value={searchQuery}
-                      onChange={(event) => setSearchQuery(event.target.value)}
-                      placeholder={`Search ${searchLabel}...`}
-                      aria-label={`Search ${searchLabel}`}
-                      aria-describedby="list-search-status"
+              <>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: "18px", fontWeight: 700, color: "var(--text)" }}>
+                        {section === "cves" ? CVES.length + PENDING_CVES.length : section === "writing" ? POSTS.length : section === "tools" ? TOOLS.length : section === "consulting" ? CONSULTATION_OFFERS.length : (about.certifications?.length || 0)}{" "}
+                        <span style={{ color: "rgba(var(--text-rgb),0.5)", fontWeight: 400, fontSize: "14px" }}>
+                          {section === "cves" ? "CVEs" : section === "writing" ? "articles" : section === "tools" ? "tools" : section === "consulting" ? "sessions" : "certs"}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="mobile-toggle nav-btn"
+                      aria-expanded={mobileShowList}
+                      aria-controls="list-scroll"
+                      onClick={() => setMobileShowList(v => !v)}
                       style={{
-                        width: "100%", height: 34, padding: "0 10px 0 32px",
-                        borderRadius: "7px", border: "1px solid rgba(var(--text-rgb),0.1)",
-                        background: "rgba(var(--text-rgb),0.045)", color: "var(--text)",
-                        fontFamily: "'JetBrains Mono', monospace", fontSize: "11px",
+                        background: "transparent", border: "1px solid rgba(var(--text-rgb),0.12)",
+                        color: "rgba(var(--text-rgb),0.75)", padding: "6px 10px", borderRadius: "6px",
+                        cursor: "pointer", fontSize: "12px", fontFamily: "inherit",
                       }}
-                    />
+                    >{mobileShowList ? "Hide" : "Show"}</button>
                   </div>
-                  <div id="list-search-status" aria-live="polite" style={{ marginTop: searchQuery.trim() ? "5px" : 0, fontSize: "10px", color: "rgba(var(--text-rgb),0.45)" }}>
-                    {searchQuery.trim() ? `${searchCount} ${searchCount === 1 ? "match" : "matches"}` : ""}
-                  </div>
-                </div>
-              )}
+
+                  {["cves", "writing", "tools"].includes(section) && (
+                    <div style={{ marginTop: "12px" }}>
+                      <div style={{ position: "relative" }}>
+                        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 18 18" fill="none"
+                             style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "rgba(var(--text-rgb),0.42)", pointerEvents: "none" }}>
+                          <circle cx="7.5" cy="7.5" r="4.75" stroke="currentColor" strokeWidth="1.5" />
+                          <path d="M11 11l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                        </svg>
+                        <input
+                          type="search"
+                          value={searchQuery}
+                          onChange={(event) => setSearchQuery(event.target.value)}
+                          placeholder={`Search ${searchLabel}...`}
+                          aria-label={`Search ${searchLabel}`}
+                          aria-describedby="list-search-status"
+                          style={{
+                            width: "100%", height: 34, padding: "0 10px 0 32px",
+                            borderRadius: "7px", border: "1px solid rgba(var(--text-rgb),0.1)",
+                            background: "rgba(var(--text-rgb),0.045)", color: "var(--text)",
+                            fontFamily: "'JetBrains Mono', monospace", fontSize: "11px",
+                          }}
+                        />
+                      </div>
+                      <div id="list-search-status" aria-live="polite" style={{ marginTop: searchQuery.trim() ? "5px" : 0, fontSize: "10px", color: "rgba(var(--text-rgb),0.45)" }}>
+                        {searchQuery.trim() ? `${searchCount} ${searchCount === 1 ? "match" : "matches"}` : ""}
+                      </div>
+                    </div>
+                  )}
+              </>
             </div>
 
             <ul id="list-scroll" className="scroll-area list-scroll" role="list"
@@ -1331,11 +1893,11 @@ export default function Portfolio() {
             </div>
           </div>
 
-          <div className={`content-row${section === "about" ? " content-row-about" : ""}`}>
+          <div className={`content-row${section === "about" ? " content-row-about" : ""}${section === "writing" ? " content-row-writing" : ""}`}>
             <div className="article-wrap" key={`${section}-${selected}`}>
               {currentItem()}
             </div>
-            {section !== "about" && <RightRail section={section} item={currentData} />}
+            {section !== "about" && <RightRail item={currentData} />}
           </div>
         </main>
       </div>
